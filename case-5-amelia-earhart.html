@@ -1,0 +1,2150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0b0e16">
+<meta name="description" content="Beast Kid: Case Files — Case #5: The Amelia Earhart Disappearance. A free point-and-click detective game. Search the evidence, question the witnesses, match it on the deduction board, close the case.">
+<title>Beast Kid: Case Files — The Amelia Earhart Disappearance</title>
+<style>
+/* Beast Kid: Case Files — noir detective theme. Mobile-first, responsive. */
+:root {
+  --ink: #e8e2d2;
+  --ink-dim: #a89f88;
+  --bg: #0b0e16;
+  --panel: #141a28;
+  --panel2: #1c2438;
+  --gold: #d8a94e;
+  --gold-hi: #f2cd7d;
+  --red: #b0523c;
+  --teal: #5f8f8a;
+  --line: #2c3650;
+  --radius: 12px;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+#app { width: 100%; max-width: 960px; min-height: 100vh; display: flex; flex-direction: column; position: relative; }
+.hidden { display: none !important; }
+
+/* ---------- HUD ---------- */
+#hud {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px;
+  background: rgba(10, 13, 22, 0.96);
+  border-bottom: 1px solid var(--line);
+  position: sticky; top: 0; z-index: 40;
+  font-size: 15px;
+}
+#hud .brand { font-weight: bold; color: var(--gold); letter-spacing: 1px; margin-right: auto; white-space: nowrap; }
+#hud .brand .brand-short { display: none; }
+.hud-stat { color: var(--ink-dim); white-space: nowrap; }
+.hud-stat b { color: var(--ink); }
+.hud-btns { display: flex; gap: 6px; margin-left: 6px; }
+.icon-btn {
+  background: var(--panel2); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 8px;
+  min-width: 42px; min-height: 42px; font-size: 18px; cursor: pointer;
+  touch-action: manipulation; padding: 0 6px;
+}
+.icon-btn:active { transform: scale(0.94); }
+.icon-btn:disabled { opacity: 0.45; }
+
+/* ---------- screens ---------- */
+#stage { flex: 1; display: flex; flex-direction: column; padding: 14px; }
+.screen { animation: fadein 0.35s ease; }
+@keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; } }
+
+/* title */
+#screen-title { text-align: center; padding: 34px 12px; position: relative; overflow: hidden; border-radius: var(--radius); }
+#title-keyart { position: absolute; inset: 0; z-index: 0; }
+#title-keyart img { width: 100%; height: 100%; object-fit: cover; opacity: 0.5; display: block; }
+#title-keyart::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11,14,22,0.55), rgba(11,14,22,0.88)); }
+#title-inner { position: relative; z-index: 1; }
+.game-kicker { color: var(--gold); letter-spacing: 4px; font-size: 13px; text-transform: uppercase; }
+.game-title { font-size: clamp(30px, 7vw, 52px); margin: 10px 0 4px; color: var(--ink); text-shadow: 0 2px 14px rgba(0,0,0,0.8); }
+.game-title em { color: var(--gold-hi); font-style: normal; }
+.game-sub { color: var(--ink-dim); font-style: italic; margin-bottom: 26px; text-shadow: 0 1px 8px rgba(0,0,0,0.8); }
+#best-line { color: var(--teal); font-size: 14px; margin: -14px 0 18px; }
+.title-art { font-size: 54px; margin: 6px 0 18px; filter: drop-shadow(0 4px 18px rgba(216,169,78,0.35)); }
+
+/* buttons */
+.btn {
+  display: block; width: 100%;
+  background: var(--panel2); color: var(--ink);
+  border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 13px 16px; margin: 8px 0; font-size: 16px; font-family: inherit;
+  cursor: pointer; text-align: center; touch-action: manipulation;
+}
+.btn small { display: block; color: var(--ink-dim); font-size: 12px; margin-top: 3px; }
+.btn:active { transform: scale(0.98); }
+.btn.primary { background: linear-gradient(180deg, var(--gold-hi), var(--gold)); color: #241a08; font-weight: bold; border: none; }
+.btn.primary:disabled { background: var(--panel2); color: var(--ink-dim); font-weight: normal; }
+.btn.topic { text-align: left; }
+.btn.topic.locked { opacity: 0.55; }
+.btn-row { display: flex; gap: 10px; }
+.btn-row .btn { flex: 1; }
+
+/* intro */
+#screen-intro { max-width: 620px; margin: 30px auto; text-align: center; }
+#intro-kicker { color: var(--gold); letter-spacing: 3px; font-size: 12px; text-transform: uppercase; }
+#intro-title { font-size: clamp(24px, 5vw, 36px); margin: 8px 0 14px; }
+#intro-text { font-size: 18px; line-height: 1.65; color: var(--ink); }
+#intro-count { color: var(--ink-dim); margin: 18px 0 6px; font-size: 13px; }
+
+/* map */
+.map-head { text-align: center; margin-bottom: 8px; }
+.map-head h2 { margin: 6px 0 2px; }
+.map-head p { color: var(--ink-dim); margin: 0 0 10px; }
+#map-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.map-card {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 16px; text-align: left; color: var(--ink); font-family: inherit; cursor: pointer;
+  touch-action: manipulation;
+}
+.map-card:active { transform: scale(0.98); }
+.map-card.locked { opacity: 0.6; cursor: not-allowed; }
+.map-card-name { font-size: 18px; font-weight: bold; }
+.map-card-sub { color: var(--ink-dim); font-size: 13px; margin: 4px 0 8px; font-style: italic; }
+.map-card-progress { color: var(--teal); font-size: 14px; }
+.map-card-lock { color: var(--ink-dim); font-size: 14px; }
+#btn-deduction { margin-top: 14px; font-size: 18px; }
+
+/* scene */
+.scene-head h2 { margin: 4px 0 0; }
+.scene-head .sub { color: var(--gold); font-style: italic; font-size: 14px; }
+.scene-head .blurb { color: var(--ink-dim); font-style: italic; margin: 6px 0 10px; line-height: 1.5; }
+.scene-frame { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); aspect-ratio: 8 / 5; background: #000; }
+.scene-frame svg { width: 100%; height: 100%; display: block; }
+.scene-frame img.scene-bg { width: 100%; height: 100%; object-fit: cover; display: block; }
+#hotspot-layer { position: absolute; inset: 0; }
+.hotspot {
+  position: absolute; width: 52px; height: 52px; margin: -26px 0 0 -26px;
+  border-radius: 50%; border: 2px solid var(--gold-hi);
+  background: rgba(216, 169, 78, 0.18); color: var(--gold-hi);
+  font-size: 22px; font-weight: bold; cursor: pointer;
+  animation: pulse 2.2s infinite; touch-action: manipulation;
+}
+.hotspot span { pointer-events: none; }
+.hotspot.found { border-color: var(--teal); color: var(--teal); background: rgba(95,143,138,0.15); animation: none; }
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(242, 205, 125, 0.55); }
+  50% { box-shadow: 0 0 0 12px rgba(242, 205, 125, 0); }
+}
+.hotspot.pulse { animation: pulse 0.9s 3; border-color: #fff; }
+#talk-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.talk-chip {
+  background: var(--panel2); border: 1px solid var(--gold); color: var(--gold-hi);
+  border-radius: 999px; padding: 10px 16px; font-size: 15px; font-family: inherit; cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* modal */
+#modal-root { position: fixed; inset: 0; z-index: 60; display: none; }
+#modal-root.open { display: block; }
+.modal-back { position: absolute; inset: 0; background: rgba(4, 6, 12, 0.78); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.modal {
+  background: var(--panel); border: 1px solid var(--gold); border-radius: var(--radius);
+  max-width: 560px; width: 100%; max-height: 86vh; overflow-y: auto; padding: 20px;
+  animation: fadein 0.25s ease;
+}
+.modal h3 { margin-top: 0; color: var(--gold-hi); }
+.modal p { line-height: 1.6; }
+.clue-head { display: flex; align-items: center; gap: 12px; }
+.clue-icon { font-size: 40px; }
+.clue-points { color: var(--teal); font-size: 14px; margin: 8px 0; }
+.npc-head { display: flex; gap: 14px; align-items: flex-start; }
+.npc-head .npc-titles { flex: 1; }
+.npc-head h3 { margin: 0; }
+.npc-role { color: var(--ink-dim); font-size: 13px; font-style: italic; }
+.npc-portrait { width: 92px; height: 92px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold); flex-shrink: 0; }
+.npc-intro { color: var(--ink-dim); font-style: italic; }
+.topics { margin: 12px 0; }
+.modal .q { font-style: italic; color: var(--gold-hi); }
+.modal .a { border-left: 3px solid var(--gold); padding-left: 12px; }
+.fx { background: var(--panel2); border-radius: 8px; padding: 8px 12px; margin: 8px 0; font-size: 14px; }
+.fx.big { border: 1px solid var(--gold); color: var(--gold-hi); font-weight: bold; }
+
+/* journal */
+#journal {
+  position: fixed; top: 0; right: -100%; width: min(420px, 94vw); height: 100vh; z-index: 55;
+  background: #10141f; border-left: 1px solid var(--gold);
+  transition: right 0.3s ease; display: flex; flex-direction: column;
+}
+#journal.open { right: 0; }
+.journal-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.journal-head h3 { margin: 0; color: var(--gold-hi); }
+#journal-body { overflow-y: auto; padding: 12px 16px; flex: 1; }
+.j-sec { margin: 10px 0 6px; color: var(--gold); }
+.j-clue { display: flex; gap: 10px; margin: 10px 0; background: var(--panel); border-radius: 8px; padding: 10px; }
+.j-icon { font-size: 26px; }
+.j-clue p { margin: 4px 0 0; font-size: 14px; color: var(--ink-dim); line-height: 1.5; }
+.j-note { background: var(--panel2); border-radius: 8px; padding: 8px 10px; margin: 6px 0; font-size: 14px; }
+.j-empty { color: var(--ink-dim); font-style: italic; }
+
+/* deduction board — drag-and-drop evidence matching */
+.ded-head { text-align: center; }
+.ded-head h2 { margin: 6px 0 2px; }
+#ded-progress { color: var(--ink-dim); margin-bottom: 12px; }
+#evidence-pool {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+  background: var(--panel); border: 1px dashed var(--line); border-radius: var(--radius);
+  padding: 12px; margin-bottom: 14px; min-height: 64px;
+}
+.pool-label { width: 100%; text-align: center; color: var(--ink-dim); font-size: 13px; font-style: italic; margin: 0 0 4px; }
+.ev-chip {
+  background: var(--panel2); border: 1px solid var(--gold); color: var(--ink);
+  border-radius: 999px; padding: 9px 14px; font-size: 14px; font-family: inherit; cursor: grab;
+  touch-action: none; user-select: none; -webkit-user-select: none;
+}
+.ev-chip:active { cursor: grabbing; }
+.ev-chip.selected { outline: 2px solid #fff; background: #2a3550; }
+.ev-chip.drag-ghost {
+  position: fixed; z-index: 90; pointer-events: none; opacity: 0.92;
+  transform: translate(-50%, -50%) scale(1.06); margin: 0;
+}
+#theory-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.theory-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; transition: border-color 0.2s, box-shadow 0.2s; }
+.theory-card h4 { margin: 0 0 6px; color: var(--gold-hi); font-size: 18px; }
+.theory-card p { color: var(--ink-dim); font-style: italic; font-size: 14px; line-height: 1.5; }
+.theory-card.drop-hover { border-color: var(--gold-hi); box-shadow: 0 0 0 3px rgba(242,205,125,0.25); }
+.theory-card.shake { animation: shake 0.4s ease; border-color: var(--red); }
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-7px); }
+  50% { transform: translateX(6px); }
+  75% { transform: translateX(-4px); }
+}
+.ev-slots { list-style: none; padding: 0; margin: 10px 0; display: flex; flex-direction: column; gap: 8px; }
+.ev-slot {
+  border: 1px dashed var(--line); border-radius: 8px; padding: 9px 12px; font-size: 14px;
+  color: var(--ink-dim); min-height: 40px; display: flex; align-items: center; gap: 8px;
+}
+.ev-slot.filled { border-style: solid; border-color: var(--teal); color: var(--ink); background: rgba(95,143,138,0.10); }
+.ev-slot.missing { opacity: 0.5; }
+#btn-close-case { margin-top: 14px; font-size: 18px; }
+#btn-ded-map { margin-top: 4px; }
+
+/* results */
+#screen-results { max-width: 640px; margin: 20px auto; text-align: center; }
+.res-rank { font-size: clamp(28px, 6vw, 44px); color: var(--gold-hi); margin: 4px 0; }
+#res-stars { font-size: 40px; margin: 2px 0 6px; letter-spacing: 4px; color: var(--gold-hi); }
+#res-badge { display: inline-block; border: 1px solid var(--gold); border-radius: 999px; padding: 8px 18px; color: var(--gold-hi); font-size: 15px; margin: 6px 0 4px; background: rgba(216,169,78,0.08); }
+.res-box { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin: 12px 0; text-align: left; }
+.res-box h4 { margin: 0 0 8px; color: var(--gold); }
+.res-box ul { margin: 0; padding-left: 20px; line-height: 1.9; }
+.res-box li.total { list-style: none; margin-left: -20px; border-top: 1px solid var(--line); padding-top: 8px; font-size: 18px; }
+.res-theory-block { margin: 10px 0; }
+.res-theory-block b { color: var(--gold-hi); }
+.real-note { color: var(--ink-dim); font-style: italic; line-height: 1.6; margin: 14px 0; }
+.next-case { border: 1px dashed var(--gold); border-radius: var(--radius); padding: 12px; margin: 12px 0; color: var(--gold-hi); }
+
+/* toast */
+#toast-root { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 70; width: min(520px, 92vw); pointer-events: none; }
+.toast {
+  background: #1d2536; border: 1px solid var(--gold); color: var(--ink);
+  border-radius: 10px; padding: 12px 16px; margin-top: 8px; font-size: 15px; line-height: 1.5;
+  opacity: 0; transform: translateY(10px); transition: all 0.3s ease;
+}
+.toast.show { opacity: 1; transform: none; }
+
+/* pause */
+#pause-menu { position: fixed; inset: 0; z-index: 65; display: none; background: rgba(4,6,12,0.85); align-items: center; justify-content: center; padding: 16px; }
+#pause-menu.open { display: flex; }
+.pause-box { background: var(--panel); border: 1px solid var(--gold); border-radius: var(--radius); padding: 24px; width: min(380px, 92vw); }
+.pause-box h3 { margin-top: 0; color: var(--gold-hi); text-align: center; }
+
+footer { text-align: center; color: var(--ink-dim); font-size: 12px; padding: 14px; }
+
+/* ---------- mobile: keep every HUD control visible & tappable ---------- */
+@media (max-width: 560px) {
+  #hud { font-size: 12px; padding: 8px 6px; gap: 5px; }
+  #hud .brand { font-size: 12px; letter-spacing: 0.5px; margin-right: auto; }
+  #hud .brand .brand-full { display: none; }
+  #hud .brand .brand-short { display: inline; }
+  .hud-stat { font-size: 12px; }
+  .hud-btns { gap: 4px; margin-left: 2px; }
+  .icon-btn { min-width: 38px; min-height: 38px; font-size: 16px; padding: 0 4px; }
+  #stage { padding: 10px; }
+  .hotspot { width: 56px; height: 56px; margin: -28px 0 0 -28px; }
+  .ev-chip { font-size: 13px; padding: 8px 12px; }
+  #res-stars { font-size: 34px; }
+}
+
+</style>
+<!--
+  CrazyGames SDK integration point:
+  CrazyGames injects their official SDK script on their portal during/after
+  submission. This build calls window.CrazyGames.SDK only through the Platform
+  adapter below, which safely no-ops when the SDK is absent (itch.io / local).
+  No SDK script tag is bundled — nothing to change between portals.
+-->
+</head>
+<body>
+<div id="app">
+
+  <header id="hud" class="hidden">
+    <div class="brand"><span class="brand-full">BEAST KID: CASE FILES</span><span class="brand-short">BK</span></div>
+    <div class="hud-stat">🔍 <b id="hud-clues">0/12</b></div>
+    <div class="hud-stat">⏱️ <b id="hud-time">00:00</b></div>
+    <div class="hud-stat">⭐ <b id="hud-score">0</b></div>
+    <div class="hud-btns">
+      <button class="icon-btn" id="btn-journal" title="Detective's journal" aria-label="Open journal">📋</button>
+      <button class="icon-btn" id="btn-hint" title="Get a hint" aria-label="Get a hint">💡</button>
+      <button class="icon-btn" id="btn-mute" title="Mute" aria-label="Mute">🔊</button>
+      <button class="icon-btn" id="btn-pause" title="Pause" aria-label="Pause">⏸️</button>
+    </div>
+  </header>
+
+  <main id="stage">
+
+    <!-- TITLE -->
+    <section id="screen-title" class="screen">
+      <div id="title-keyart"></div>
+      <div id="title-inner">
+        <div class="game-kicker">Beast Kid presents</div>
+        <h1 class="game-title">CASE FILES <em>— No. 5</em></h1>
+        <div class="title-art">✈️</div>
+        <h2 class="game-sub">The Amelia Earhart Disappearance · Pacific, 1937</h2>
+        <p class="game-sub">A silver plane, a silent radio, and the Pacific’s greatest mystery.<br>Eight clues. One deduction board. The truth is yours to find.</p>
+        <p id="best-line" class="hidden"></p>
+        <button class="btn primary" id="btn-begin">🔍 Begin the investigation</button>
+        <button class="btn" id="btn-how">How to play</button>
+      </div>
+    </section>
+
+    <!-- INTRO -->
+    <section id="screen-intro" class="screen hidden">
+      <div id="intro-kicker"></div>
+      <h2 id="intro-title"></h2>
+      <p id="intro-text"></p>
+      <div id="intro-count"></div>
+      <div class="btn-row">
+        <button class="btn" id="btn-intro-back">← Back</button>
+        <button class="btn primary" id="btn-intro-next">Next →</button>
+      </div>
+    </section>
+
+    <!-- MAP -->
+    <section id="screen-map" class="screen hidden">
+      <div class="map-head">
+        <h2>🗺️ Case map — Pacific, 1937</h2>
+        <p>Travel between locations. Find the evidence. Talk to everyone.</p>
+      </div>
+      <div id="map-cards"></div>
+      <button class="btn primary" id="btn-deduction" disabled></button>
+    </section>
+
+    <!-- SCENE -->
+    <section id="screen-scene" class="screen hidden">
+      <div class="scene-head">
+        <h2 id="scene-name"></h2>
+        <div class="sub" id="scene-sub"></div>
+        <p class="blurb" id="scene-blurb"></p>
+      </div>
+      <div class="scene-frame">
+        <div id="scene-art"></div>
+        <div id="hotspot-layer"></div>
+      </div>
+      <div id="talk-row"></div>
+      <button class="btn" id="btn-map" style="margin-top:12px">← Back to case map</button>
+    </section>
+
+    <!-- DEDUCTION -->
+    <section id="screen-deduction" class="screen hidden">
+      <div class="ded-head">
+        <h2>🧬 The deduction board</h2>
+        <p id="ded-progress"></p>
+        <p style="color:var(--ink-dim);font-style:italic">Three theories. Your evidence. Drag each clue onto the theory it supports — every theory needs its links. A wrong fit just bounces back; a right fit locks in.</p>
+      </div>
+      <div id="evidence-pool"></div>
+      <div id="theory-cards"></div>
+      <button class="btn primary" id="btn-close-case" disabled>🔒 Close the case</button>
+      <button class="btn" id="btn-ded-map">← Keep investigating</button>
+    </section>
+
+    <!-- RESULTS -->
+    <section id="screen-results" class="screen hidden">
+      <div class="game-kicker">Case closed</div>
+      <div class="res-rank" id="res-rank"></div>
+      <div id="res-stars"></div>
+      <div><span id="res-badge" class="hidden"></span></div>
+      <div class="res-box">
+        <h4>🧬 Your deduction board</h4>
+        <div id="res-board"></div>
+      </div>
+      <div class="res-box">
+        <h4>⭐ Score breakdown</h4>
+        <ul id="res-score"></ul>
+      </div>
+      <p class="real-note">The real Amelia Earhart vanished on July 2, 1937, flying from Lae, New Guinea to Howland Island with navigator Fred Noonan. Despite the largest sea-and-air search of its time, no trace of the Electra was found — the official conclusion is that the plane ran out of fuel and went down in the Pacific. The theories in this game are the real ones historians still debate. Your deduction is your own.</p>
+      <div class="next-case">🔜 <b>Next case file:</b> a brand-new unsolved mystery drops every Monday. Stay sharp, detective.</div>
+      <button class="btn primary" id="btn-again">🔁 Play again</button>
+    </section>
+
+  </main>
+
+  <footer>Beast Kid: Case Files · free to play · a Beast Kid mystery</footer>
+</div>
+
+<!-- JOURNAL -->
+<aside id="journal" aria-label="Detective's journal">
+  <div class="journal-head">
+    <h3>📋 Detective’s journal</h3>
+    <button class="icon-btn" id="journal-close" aria-label="Close journal">✕</button>
+  </div>
+  <div id="journal-body"></div>
+</aside>
+
+<!-- PAUSE -->
+<div id="pause-menu">
+  <div class="pause-box">
+    <h3>⏸️ Paused</h3>
+    <button class="btn primary" id="btn-resume">Resume</button>
+    <button class="btn" id="btn-pause-how">How to play</button>
+    <button class="btn" id="btn-restart">Restart case</button>
+  </div>
+</div>
+
+<div id="modal-root"></div>
+<div id="toast-root"></div>
+<!-- inlined js/platform.js -->
+<!-- inlined js/audio.js -->
+<!-- inlined js/data.js (data-case2.js, via build-inline.js) -->
+<!-- inlined art manifest (via build-inline.js) -->
+<!-- inlined js/game.js -->
+<script>
+/* =========================================================================
+ * platform.js — CrazyGames SDK (v3) adapter + standalone fallback
+ * -------------------------------------------------------------------------
+ * INTEGRATION POINT — how the CrazyGames SDK gets into the page:
+ *   CrazyGames injects their official SDK script into the game page on
+ *   THEIR portal during/after submission (this is how their HTML5 pipeline
+ *   works — the game code itself only needs to call window.CrazyGames.SDK).
+ *   Nothing is bundled here and no script URL is guessed.
+ *
+ * Every method below is guarded: when the game runs on itch.io, locally,
+ * or anywhere outside CrazyGames, window.CrazyGames is undefined and every
+ * call safely no-ops. The SAME build therefore works on both portals with
+ * zero changes.
+ *
+ * Verified against CrazyGames SDK v3 docs (Sept 2026):
+ *   - game.gameplayStart()  — entering/resuming active gameplay
+ *   - game.gameplayStop()   — menus, pauses, breaks (NOT tab blur; CG handles)
+ *   - game.sdkGameLoadingStart/Stop() — asset loading signals
+ *   - game.happyTime()      — positive player moment (boosts ad yield)
+ *   - ad.requestAd("midgame", {adStarted, adFinished, adError})
+ *   - ad.requestAd("rewarded", {adStarted, adFinished, adError})
+ *     * grant rewarded items ONLY on adFinished; adError = no reward
+ *     * midgame ads only at natural gameplay breaks, never mid-action
+ * ========================================================================= */
+(function (root) {
+  "use strict";
+
+  function getSDK() {
+    try {
+      return root.CrazyGames && root.CrazyGames.SDK ? root.CrazyGames.SDK : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  var Platform = {
+    /** true when actually running inside the CrazyGames portal */
+    get isCrazyGames() {
+      return !!getSDK();
+    },
+
+    /** call once during boot */
+    loadingStart: function () {
+      var sdk = getSDK();
+      if (sdk && sdk.game && sdk.game.sdkGameLoadingStart) {
+        try { sdk.game.sdkGameLoadingStart(); } catch (e) {}
+      }
+    },
+
+    /** call once boot is complete */
+    loadingDone: function () {
+      var sdk = getSDK();
+      if (sdk && sdk.game && sdk.game.sdkGameLoadingStop) {
+        try { sdk.game.sdkGameLoadingStop(); } catch (e) {}
+      }
+    },
+
+    /** player entered or resumed active gameplay */
+    gameplayStart: function () {
+      var sdk = getSDK();
+      if (sdk && sdk.game && sdk.game.gameplayStart) {
+        try { sdk.game.gameplayStart(); } catch (e) {}
+      }
+    },
+
+    /** player hit a break: pause menu, map, deduction board, results */
+    gameplayStop: function () {
+      var sdk = getSDK();
+      if (sdk && sdk.game && sdk.game.gameplayStop) {
+        try { sdk.game.gameplayStop(); } catch (e) {}
+      }
+    },
+
+    /** positive moment — called when the case is solved */
+    happyTime: function () {
+      var sdk = getSDK();
+      if (sdk && sdk.game && sdk.game.happyTime) {
+        try { sdk.game.happyTime(); } catch (e) {}
+      }
+    },
+
+    /**
+     * Midgame ad at a NATURAL break (we call it before the deduction board).
+     * Returns a Promise that always resolves — the game continues whether
+     * the ad played, errored, was blocked, or the SDK is absent.
+     */
+    midgameAd: function () {
+      var sdk = getSDK();
+      return new Promise(function (resolve) {
+        if (!sdk || !sdk.ad || !sdk.ad.requestAd) { resolve(); return; }
+        var done = false;
+        function finish() { if (!done) { done = true; resolve(); } }
+        try {
+          sdk.ad.requestAd("midgame", {
+            adStarted: function () {},
+            adFinished: finish,
+            adError: finish
+          });
+          // Safety net: never hang the game on an ad callback.
+          setTimeout(finish, 15000);
+        } catch (e) { finish(); }
+      });
+    },
+
+    /**
+     * Rewarded ad, ALWAYS user-initiated (the "watch ad for a hint" button).
+     * cb(true)  -> adFinished: grant the reward.
+     * cb(false) -> adError / no SDK: NEVER grant; caller shows a message.
+     */
+    rewardedAd: function (cb) {
+      var sdk = getSDK();
+      if (!sdk || !sdk.ad || !sdk.ad.requestAd) { cb(false); return; }
+      var settled = false;
+      function no(e)  { if (!settled) { settled = true; cb(false); } }
+      function yes()  { if (!settled) { settled = true; cb(true); } }
+      try {
+        sdk.ad.requestAd("rewarded", {
+          adStarted: function () {},
+          adFinished: yes,
+          adError: no
+        });
+        setTimeout(no, 15000);
+      } catch (e) { no(e); }
+    }
+  };
+
+  root.Platform = Platform;
+})(typeof window !== "undefined" ? window : this);
+
+/* =========================================================================
+ * audio.js — generated sound: SFX + a moody noir music bed + per-scene
+ * ambient variation. Everything is synthesized with Web Audio; zero audio
+ * files. Respects the mute toggle, initializes on first user gesture
+ * (browser autoplay policy). All failures are silent by design.
+ * ========================================================================= */
+(function (root) {
+  "use strict";
+
+  var ctx = null;
+  var noiseBuf = null;
+  var moodNodes = null;   // per-scene ambient
+  var musicTimer = null;   // noir chord loop
+  var muted = false;
+  try { muted = root.localStorage && root.localStorage.getItem("bk_muted") === "1"; } catch (e) {}
+
+  function ensure() {
+    if (!ctx) {
+      try {
+        var AC = root.AudioContext || root.webkitAudioContext;
+        if (AC) ctx = new AC();
+      } catch (e) { ctx = null; }
+    }
+    if (ctx && ctx.state === "suspended") { ctx.resume(); }
+    return ctx;
+  }
+
+  function getNoiseBuf(c) {
+    if (noiseBuf) return noiseBuf;
+    try {
+      var len = c.sampleRate * 2;
+      var buf = c.createBuffer(1, len, c.sampleRate);
+      var d = buf.getChannelData(0);
+      for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      noiseBuf = buf;
+    } catch (e) { noiseBuf = null; }
+    return noiseBuf;
+  }
+
+  function tone(freq, dur, type, vol, when) {
+    if (muted) return;
+    var c = ensure();
+    if (!c) return;
+    try {
+      var t = c.currentTime + (when || 0);
+      var o = c.createOscillator();
+      var g = c.createGain();
+      o.type = type || "sine";
+      o.frequency.setValueAtTime(freq, t);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol || 0.12, t + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(c.destination);
+      o.start(t); o.stop(t + dur + 0.05);
+    } catch (e) {}
+  }
+
+  /* ---- noir music bed: slow Am–Dm–F–E pad loop + low bass ---- */
+  var CHORDS = [
+    [110.00, 220.00, 261.63, 329.63],  // Am
+    [146.83, 293.66, 349.23, 293.66],  // Dm
+    [174.61, 349.23, 440.00, 349.23],  // F
+    [164.81, 329.63, 415.30, 329.63]   // E
+  ];
+  var CHORD_SECS = 6;
+
+  function playChord(freqs) {
+    var c = ensure();
+    if (!c || muted) return;
+    try {
+      var t = c.currentTime + 0.05;
+      var dur = CHORD_SECS + 1.5;
+      for (var i = 0; i < freqs.length; i++) {
+        var o = c.createOscillator();
+        var g = c.createGain();
+        o.type = "triangle";
+        o.frequency.setValueAtTime(freqs[i], t);
+        // slow noir swell
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.030, t + 1.8);
+        g.gain.setValueAtTime(0.030, t + dur - 1.5);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        o.connect(g); g.connect(c.destination);
+        o.start(t); o.stop(t + dur + 0.1);
+      }
+      // low bass root
+      var b = c.createOscillator();
+      var bg = c.createGain();
+      b.type = "sine";
+      b.frequency.setValueAtTime(freqs[0] / 2, t);
+      bg.gain.setValueAtTime(0.0001, t);
+      bg.gain.exponentialRampToValueAtTime(0.045, t + 1.2);
+      bg.gain.setValueAtTime(0.045, t + dur - 1.5);
+      bg.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      b.connect(bg); bg.connect(c.destination);
+      b.start(t); b.stop(t + dur + 0.1);
+    } catch (e) {}
+  }
+
+  function startMusic() {
+    if (muted || musicTimer) return;
+    var c = ensure();
+    if (!c) return;
+    var idx = 0;
+    function next() {
+      if (muted) return;
+      playChord(CHORDS[idx % CHORDS.length]);
+      idx++;
+      musicTimer = setTimeout(next, CHORD_SECS * 1000);
+    }
+    next();
+  }
+
+  function stopMusic() {
+    if (musicTimer) { clearTimeout(musicTimer); musicTimer = null; }
+  }
+
+  /* ---- per-scene ambient moods (all generated, all quiet) ---- */
+  var MOODS = {
+    title:   { hum: [[55, 0.010]] },
+    itasca:  { hum: [[120, 0.006]], noise: { type: "bandpass", freq: 3105, q: 0.8, gain: 0.006 }, lfo: { rate: 0.50, depth: 0.004 } },
+    lae:     { noise: { type: "lowpass", freq: 700, gain: 0.012 }, lfo: { rate: 0.15, depth: 0.006 } },
+    nikumaroro: { noise: { type: "lowpass", freq: 400, gain: 0.020 }, lfo: { rate: 0.08, depth: 0.012 } },
+    archive: { hum: [[60, 0.008], [120, 0.004]] },
+    map:     { hum: [[55, 0.010]] },
+    deduction: { hum: [[55, 0.010]] },
+    results: { hum: [[55, 0.008]] }
+  };
+
+  function setMood(name) {
+    stopMood();
+    if (muted) return;
+    var c = ensure();
+    if (!c) return;
+    var mood = MOODS[name] || MOODS.title;
+    try {
+      var nodes = { oscs: [], gains: [], lfo: null };
+      (mood.hum || []).forEach(function (h) {
+        var o = c.createOscillator();
+        var g = c.createGain();
+        o.type = "sine";
+        o.frequency.setValueAtTime(h[0], c.currentTime);
+        g.gain.setValueAtTime(0.0001, c.currentTime);
+        g.gain.exponentialRampToValueAtTime(h[1], c.currentTime + 2.0);
+        o.connect(g); g.connect(c.destination);
+        o.start();
+        nodes.oscs.push(o); nodes.gains.push(g);
+      });
+      if (mood.noise) {
+        var nb = getNoiseBuf(c);
+        if (nb) {
+          var src = c.createBufferSource();
+          src.buffer = nb; src.loop = true;
+          var f = c.createBiquadFilter();
+          f.type = mood.noise.type;
+          f.frequency.setValueAtTime(mood.noise.freq, c.currentTime);
+          if (mood.noise.q) f.Q.setValueAtTime(mood.noise.q, c.currentTime);
+          var ng = c.createGain();
+          ng.gain.setValueAtTime(0.0001, c.currentTime);
+          ng.gain.exponentialRampToValueAtTime(mood.noise.gain, c.currentTime + 2.5);
+          src.connect(f); f.connect(ng); ng.connect(c.destination);
+          src.start();
+          nodes.oscs.push(src); nodes.gains.push(ng);
+          if (mood.lfo) {
+            var lfo = c.createOscillator();
+            var lg = c.createGain();
+            lfo.type = "sine";
+            lfo.frequency.setValueAtTime(mood.lfo.rate, c.currentTime);
+            lg.gain.setValueAtTime(mood.lfo.depth, c.currentTime);
+            lfo.connect(lg); lg.connect(ng.gain);
+            lfo.start();
+            nodes.lfo = lfo;
+          }
+        }
+      }
+      moodNodes = nodes;
+    } catch (e) {}
+  }
+
+  function stopMood() {
+    if (!moodNodes) return;
+    var nodes = moodNodes;
+    moodNodes = null;
+    try {
+      var t = ctx ? ctx.currentTime : 0;
+      nodes.gains.forEach(function (g) {
+        try { g.gain.linearRampToValueAtTime(0.0001, t + 0.5); } catch (e) {}
+      });
+      setTimeout(function () {
+        nodes.oscs.forEach(function (o) { try { o.stop(); } catch (e) {} });
+        if (nodes.lfo) { try { nodes.lfo.stop(); } catch (e) {} }
+      }, 650);
+    } catch (e) {}
+  }
+
+  var AudioFX = {
+    get muted() { return muted; },
+
+    toggleMute: function () {
+      muted = !muted;
+      try { if (root.localStorage) root.localStorage.setItem("bk_muted", muted ? "1" : "0"); } catch (e) {}
+      if (muted) { stopMood(); stopMusic(); }
+      return muted;
+    },
+
+    unlock: function () { ensure(); },           // call on first tap/click
+    click: function () { tone(620, 0.06, "triangle", 0.10); },
+    clue:  function () {                          // little "discovery" chime
+      tone(523.25, 0.12, "sine", 0.14);
+      tone(783.99, 0.18, "sine", 0.12, 0.10);
+    },
+    paper: function () { tone(220, 0.08, "sawtooth", 0.05); tone(330, 0.06, "sawtooth", 0.04, 0.05); },
+    snap:  function () {                           // evidence locks into place
+      tone(880, 0.07, "triangle", 0.12);
+      tone(1174.66, 0.12, "triangle", 0.10, 0.06);
+    },
+    wrong: function () { tone(196, 0.16, "sine", 0.10); tone(155.56, 0.2, "sine", 0.09, 0.08); },
+    success: function () {                       // case solved
+      tone(392, 0.15, "sine", 0.14);
+      tone(523.25, 0.15, "sine", 0.14, 0.12);
+      tone(659.25, 0.25, "sine", 0.14, 0.24);
+      tone(783.99, 0.35, "sine", 0.12, 0.36);
+    },
+
+    /** noir music bed + per-scene mood; safe to leave running, mute stops it */
+    startAmbient: function () {
+      startMusic();
+      setMood("title");
+    },
+    setMood: setMood,
+    stopAmbient: function () {
+      stopMood();
+      stopMusic();
+    }
+  };
+
+  root.AudioFX = AudioFX;
+})(typeof window !== "undefined" ? window : this);
+
+/*__DATA_BEGIN__*/
+/* =========================================================================
+ * data.js — ALL story content for Case #5: The Amelia Earhart Disappearance
+ * Facts are based on the real July 2, 1937 disappearance of Amelia Earhart
+ * and navigator Fred Noonan (Lockheed Electra 10E, Lae -> Howland Island),
+ * told in a family-friendly, non-graphic way.
+ * Portal build: 4 scenes, 8 clues, 3 NPCs, drag-deduction with 3 red-herring
+ * decoy chips. Illustrated art comes from assets/portal-art/ via the
+ * build-time art manifest (see build-inline.js); the inline SVG below is
+ * the always-available fallback.
+ * UMD-ish: usable in the browser (window.BK_DATA) and in Node tests.
+ * ========================================================================= */
+(function (root) {
+  "use strict";
+
+  /* ------------------------------- CLUES -------------------------------- */
+  var CLUES = {
+    radiolog: {
+      name: "The Itasca Radio Log", icon: "📻", scene: "itasca",
+      desc: "The radio log of the Coast Guard cutter Itasca, waiting off Howland Island on the morning of July 2, 1937. Page after page of static and unanswered calls — and then, around 8:43 AM ship time, her voice one last time: \u2018We are on the line 157 337. We will repeat this message on 6210 kilocycles. Wait.\u2019 Then silence.",
+      flavor: "8:43 AM: \u2018We are on the line 157 337.\u2019 Then silence."
+    },
+    chart: {
+      name: "The 157/337 Position-Line Chart", icon: "🗺️", scene: "itasca", requires: "radiolog",
+      desc: "Pinned above the radio desk: navigator Fred Noonan's chart. A sunrise sighting gave them a single line of position running 157\u00B0 to 337\u00B0 straight through Howland Island — so they flew along it, first north, then south, searching. Every mile of that line is empty ocean.",
+      flavor: "One line through Howland — flown north, then south."
+    },
+    antenna: {
+      name: "The Trailing-Antenna Note", icon: "📝", scene: "lae",
+      desc: "A mechanic's grease-pencil note from Lae: the Electra's long trailing wire antenna was left behind to save weight. Without it, her low-frequency voice went out faint and thin — which may be why the Itasca heard her so weakly, and why she never seemed to hear their replies.",
+      flavor: "The long antenna stayed in Lae — her voice went out faint."
+    },
+    fuel: {
+      name: "The Fuel-Load Calculation Sheet", icon: "⛽", scene: "lae", requires: "antenna",
+      desc: "The flight plan's fuel math, corrected in pencil: the headwinds over the Pacific blew far stronger than forecast, drinking fuel faster than planned. The numbers say the Electra could not reach Howland with anything to spare — the tanks would run dry right around the 157/337 line.",
+      flavor: "Stronger headwinds than planned — the tanks would run dry."
+    },
+    bones: {
+      name: "The 1940 Bones Report", icon: "🦴", scene: "nikumaroro",
+      desc: "A 1940 report from British officer Gerald Gallagher on Gardner Island — now called Nikumaroro. Beneath a ren tree: thirteen bones, carefully measured by a doctor, then lost when war swept the Pacific. In 2018, scientists re-read the old measurements — and found they match a tall woman of Amelia's build.",
+      flavor: "Thirteen bones, measured in 1940 — matching a tall woman."
+    },
+    sextant: {
+      name: "The Sextant Box", icon: "🧭", scene: "nikumaroro", requires: "bones",
+      desc: "Found near the same spot as the bones: a wooden box built to hold a navigator's sextant — the instrument Fred Noonan used to shoot the sun and stars. The box matches the kind of sextant a professional navigator would carry on a world flight.",
+      flavor: "A navigator's sextant box — Noonan's trade."
+    },
+    distress: {
+      name: "The Post-Loss Signal Notebook", icon: "📓", scene: "archive",
+      desc: "For days after July 2, faint cries for help crackled across 3105 and 6210 kilocycles — the Electra's own frequencies. In Florida, 15-year-old Betty Klenck copied one into her school notebook on July 5, 1937: a frightened woman's voice giving her name as Amelia Earhart, asking someone to come out on the water.",
+      flavor: "A schoolgirl's notebook: a voice asking for help."
+    },
+    panel: {
+      name: "The Reef Aircraft Panel", icon: "🛩️", scene: "archive", requires: "distress",
+      desc: "Pulled from Nikumaroro's reef flat: a sheet of aircraft aluminum, its rivet pattern matching a one-of-a-kind repair patch photographed on Earhart's Electra. If a plane came down on that reef, the surf would have torn it apart — and scattered pieces just like this one.",
+      flavor: "Reef aluminum — rivets matching her Electra's repair patch."
+    }
+  };
+
+  /* ------------------------------- SCENES ------------------------------- */
+  /* Hotspot x/y are % positions inside the scene frame.                    */
+  /* Illustrated backgrounds live in assets/portal-art/ (build-time manifest);
+     `art` below is the inline-SVG fallback, always available.               */
+  var SCENES = {
+    itasca: {
+      name: "The Itasca Radio Room", sub: "Off Howland Island · July 2, 1937, dawn",
+      blurb: "Aboard the Coast Guard cutter Itasca, a radioman hunches over his set as the Pacific dawn breaks. Somewhere out there, a silver plane is calling — faint, fading, and running out of sky.",
+      hotspots: [
+        { id: "hs-radiolog", clue: "radiolog", x: 30, y: 60, label: "The ship's radio log" },
+        { id: "hs-chart", clue: "chart", x: 70, y: 40, label: "The chart above the desk", requires: "radiolog" }
+      ],
+      npcs: ["radioman"],
+      art:
+      '<svg viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' +
+      '<defs><linearGradient id="it-wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a2a1c"/><stop offset="1" stop-color="#241a10"/></linearGradient>' +
+      '<linearGradient id="it-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd9a0"/><stop offset="1" stop-color="#ff9a6a"/></linearGradient>' +
+      '<radialGradient id="it-glow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#ffd166" stop-opacity="0.55"/><stop offset="1" stop-color="#ffd166" stop-opacity="0"/></radialGradient></defs>' +
+      '<rect width="800" height="500" fill="url(#it-wall)"/>' +
+      '<g stroke="#1c130a" stroke-width="2" opacity="0.6"><line x1="0" y1="120" x2="800" y2="120"/><line x1="0" y1="200" x2="800" y2="200"/><line x1="0" y1="280" x2="800" y2="280"/></g>' +
+      '<g><circle cx="650" cy="120" r="72" fill="#8a6a3a"/><circle cx="650" cy="120" r="60" fill="url(#it-sky)"/>' +
+      '<rect x="592" y="128" width="116" height="52" fill="#2a7a9a"/><circle cx="622" cy="112" r="16" fill="#fff3c0"/>' +
+      '<g stroke="#8a6a3a" stroke-width="8"><line x1="590" y1="120" x2="710" y2="120"/><line x1="650" y1="60" x2="650" y2="180"/></g></g>' +
+      '<g><rect x="80" y="330" width="460" height="130" rx="8" fill="#5a4128" stroke="#3a2a1c" stroke-width="3"/>' +
+      '<rect x="80" y="330" width="460" height="18" rx="8" fill="#6a4c30"/></g>' +
+      '<g><rect x="110" y="220" width="210" height="110" rx="8" fill="#1c2430" stroke="#39445e" stroke-width="3"/>' +
+      '<g><circle cx="150" cy="260" r="16" fill="#0a0e18" stroke="#8a7c5c" stroke-width="3"/><line x1="150" y1="260" x2="160" y2="250" stroke="#ff5a5a" stroke-width="3"/>' +
+      '<circle cx="200" cy="260" r="16" fill="#0a0e18" stroke="#8a7c5c" stroke-width="3"/><line x1="200" y1="260" x2="192" y2="248" stroke="#7fd4ff" stroke-width="3"/></g>' +
+      '<rect x="240" y="244" width="60" height="32" rx="4" fill="#0a0e18"/>' +
+      '<g font-family="monospace" font-size="13" fill="#5fe38a"><text x="246" y="266">6210</text></g>' +
+      '<circle cx="305" cy="236" r="6" fill="#ff5a5a"><animate attributeName="opacity" values="1;0.2;1" dur="1.6s" repeatCount="indefinite"/></circle>' +
+      '<polygon points="150,220 170,220 196,180 176,180" fill="#8a6a3a"/><ellipse cx="186" cy="176" rx="26" ry="16" fill="#a8824e"/></g>' +
+      '<g><polygon points="380,330 430,330 420,300 390,300" fill="#e8e2d2"/><polygon points="430,330 480,330 470,300 420,300" fill="#d8d2c2"/>' +
+      '<g stroke="#233246" stroke-width="2" opacity="0.6"><line x1="392" y1="312" x2="424" y2="312"/><line x1="436" y1="312" x2="468" y2="312"/><line x1="392" y1="322" x2="424" y2="322"/></g></g>' +
+      '<g><rect x="560" y="318" width="70" height="12" rx="3" fill="#2c2138"/><rect x="588" y="296" width="14" height="24" rx="4" fill="#8a6a3a"/><circle cx="595" cy="292" r="10" fill="#5a3a22"/></g>' +
+      '<g><rect x="396" y="60" width="8" height="70" fill="#1c130a"/><polygon points="360,130 440,130 400,96" fill="#8a6a3a"/>' +
+      '<ellipse cx="400" cy="150" rx="90" ry="60" fill="url(#it-glow)" opacity="0.6"/></g>' +
+      '<g><path d="M60 360 q40 30 0 60" stroke="#8a6a3a" stroke-width="6" fill="none"/><rect x="36" y="380" width="34" height="22" rx="8" fill="#2c2138"/><rect x="70" y="380" width="34" height="22" rx="8" fill="#2c2138"/></g>' +
+      '<rect y="460" width="800" height="40" fill="#160f08"/>' +
+      '</svg>'
+    },
+    lae: {
+      name: "Lae Airfield Hangar", sub: "Lae, New Guinea · departure morning",
+      blurb: "Dawn at the edge of the jungle. The silver Electra waits by the hangar, tanks full for the longest leg of the flight — 2,556 miles of open ocean to a speck called Howland Island.",
+      hotspots: [
+        { id: "hs-antenna", clue: "antenna", x: 30, y: 55, label: "The mechanic's note" },
+        { id: "hs-fuel", clue: "fuel", x: 68, y: 58, label: "The fuel drums", requires: "antenna" }
+      ],
+      npcs: [],
+      art:
+      '<svg viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' +
+      '<defs><linearGradient id="la-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a4a8a"/><stop offset="0.55" stop-color="#ff9a6a"/><stop offset="1" stop-color="#ffd9a0"/></linearGradient>' +
+      '<linearGradient id="la-plane" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8ecf2"/><stop offset="1" stop-color="#9aa2b0"/></linearGradient>' +
+      '<radialGradient id="la-sun" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#fff3c0" stop-opacity="0.9"/><stop offset="1" stop-color="#fff3c0" stop-opacity="0"/></radialGradient></defs>' +
+      '<rect width="800" height="330" fill="url(#la-sky)"/>' +
+      '<circle cx="620" cy="150" r="46" fill="#fff3c0"/><ellipse cx="620" cy="150" rx="110" ry="80" fill="url(#la-sun)" opacity="0.7"/>' +
+      '<g fill="#2c4a2c" opacity="0.9"><ellipse cx="80" cy="300" rx="120" ry="34"/><ellipse cx="330" cy="308" rx="140" ry="30"/><ellipse cx="720" cy="300" rx="110" ry="32"/></g>' +
+      '<g><rect x="90" y="150" width="260" height="150" fill="#4a3a26" opacity="0.92"/>' +
+      '<polygon points="70,150 370,150 310,80 130,80" fill="#5a4a30"/>' +
+      '<g stroke="#3a2c1c" stroke-width="4"><line x1="110" y1="150" x2="110" y2="300"/><line x1="330" y1="150" x2="330" y2="300"/></g></g>' +
+      '<g><ellipse cx="520" cy="330" rx="130" ry="34" fill="url(#la-plane)" stroke="#7a8494" stroke-width="3"/>' +
+      '<rect x="390" y="312" width="260" height="26" rx="13" fill="url(#la-plane)" stroke="#7a8494" stroke-width="2"/>' +
+      '<g><rect x="450" y="300" width="44" height="60" rx="10" fill="#8a94a6" stroke="#5a6474" stroke-width="2"/><ellipse cx="472" cy="330" rx="34" ry="40" fill="#c8ccd4" opacity="0.35"><animateTransform attributeName="transform" type="rotate" from="0 472 330" to="360 472 330" dur="0.5s" repeatCount="indefinite"/></ellipse></g>' +
+      '<g><rect x="560" y="300" width="44" height="60" rx="10" fill="#8a94a6" stroke="#5a6474" stroke-width="2"/><ellipse cx="582" cy="330" rx="34" ry="40" fill="#c8ccd4" opacity="0.35"><animateTransform attributeName="transform" type="rotate" from="0 582 330" to="360 582 330" dur="0.5s" repeatCount="indefinite"/></ellipse></g>' +
+      '<polygon points="640,318 680,318 668,250 652,250" fill="#9aa2b0" stroke="#7a8494" stroke-width="2"/>' +
+      '<g fill="#2a3a4a"><rect x="440" y="318" width="40" height="14" rx="4"/><rect x="560" y="318" width="40" height="14" rx="4"/></g></g>' +
+      '<g><rect x="120" y="200" width="14" height="110" fill="#4a3a26" transform="rotate(8 120 200)"/>' +
+      '<g fill="#3a6a3a"><ellipse cx="150" cy="180" rx="46" ry="16" transform="rotate(-20 150 180)"/><ellipse cx="110" cy="170" rx="40" ry="14" transform="rotate(15 110 170)"/><ellipse cx="140" cy="150" rx="36" ry="13"/></g></g>' +
+      '<g><rect x="700" y="210" width="14" height="100" fill="#4a3a26" transform="rotate(-8 700 210)"/>' +
+      '<g fill="#3a6a3a"><ellipse cx="730" cy="190" rx="44" ry="15" transform="rotate(-15 730 190)"/><ellipse cx="690" cy="180" rx="38" ry="13" transform="rotate(18 690 180)"/></g></g>' +
+      '<g><rect x="180" y="360" width="52" height="64" rx="6" fill="#a83a2a"/><ellipse cx="206" cy="360" rx="26" ry="8" fill="#c85a4a"/><rect x="242" y="366" width="52" height="58" rx="6" fill="#2a5a8a"/><ellipse cx="268" cy="366" rx="26" ry="8" fill="#4a7aaa"/></g>' +
+      '<g><rect x="320" y="380" width="56" height="44" fill="#8a6a3a" stroke="#5a4a26" stroke-width="3"/><line x1="320" y1="380" x2="376" y2="424"/><line x1="376" y1="380" x2="320" y2="424" stroke="#5a4a26" stroke-width="3"/></g>' +
+      '<rect y="424" width="800" height="76" fill="#5a6a3a"/>' +
+      '<rect y="424" width="800" height="14" fill="#8a7a5a"/>' +
+      '</svg>'
+    },
+    nikumaroro: {
+      name: "Nikumaroro Beach", sub: "Gardner Island · present day",
+      blurb: "An uninhabited coral atoll — white sand, leaning palms, and a restless surf. A small research camp keeps digging where a colonial officer found bones in 1940, and the reef still gives up pieces of metal.",
+      locked: true,
+      hotspots: [
+        { id: "hs-bones", clue: "bones", x: 35, y: 60, label: "The marked dig site" },
+        { id: "hs-sextant", clue: "sextant", x: 65, y: 52, label: "The camp table", requires: "bones" }
+      ],
+      npcs: ["researcher"],
+      art:
+      '<svg viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' +
+      '<defs><linearGradient id="ni-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8ed4ee"/><stop offset="1" stop-color="#d8f2f8"/></linearGradient>' +
+      '<linearGradient id="ni-sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2aa89c"/><stop offset="1" stop-color="#8fe3d4"/></linearGradient>' +
+      '<linearGradient id="ni-sand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7ecc0"/><stop offset="1" stop-color="#e8d49a"/></linearGradient></defs>' +
+      '<rect width="800" height="240" fill="url(#ni-sky)"/>' +
+      '<circle cx="150" cy="80" r="34" fill="#fff8dc"/>' +
+      '<g fill="#ffffff" opacity="0.9"><ellipse cx="420" cy="70" rx="60" ry="18"/><ellipse cx="470" cy="82" rx="46" ry="14"/><ellipse cx="650" cy="110" rx="52" ry="15"/></g>' +
+      '<rect y="240" width="800" height="110" fill="url(#ni-sea)"/>' +
+      '<g stroke="#ffffff" stroke-width="3" opacity="0.7" fill="none"><path d="M60 280 q60 -14 120 0 t120 0 t120 0 t120 0 t120 0"/><path d="M120 315 q60 -12 120 0 t120 0 t120 0 t120 0"/></g>' +
+      '<g fill="#7a8a94" opacity="0.9"><ellipse cx="200" cy="330" rx="34" ry="14"/><ellipse cx="560" cy="340" rx="42" ry="16"/><ellipse cx="700" cy="322" rx="28" ry="12"/></g>' +
+      '<path d="M0 350 Q200 330 400 350 T800 350 L800 500 L0 500 Z" fill="url(#ni-sand)"/>' +
+      '<g><path d="M140 420 Q150 340 190 300" stroke="#6a4a2a" stroke-width="14" fill="none" stroke-linecap="round"/>' +
+      '<g fill="#3a8a3a"><ellipse cx="210" cy="285" rx="60" ry="18" transform="rotate(-25 210 285)"/><ellipse cx="160" cy="280" rx="54" ry="16" transform="rotate(20 160 280)"/><ellipse cx="195" cy="255" rx="48" ry="15"/></g>' +
+      '<circle cx="228" cy="300" r="12" fill="#6a4a2a"/><circle cx="182" cy="296" r="12" fill="#6a4a2a"/></g>' +
+      '<g><path d="M660 430 Q655 360 630 330" stroke="#6a4a2a" stroke-width="12" fill="none" stroke-linecap="round"/>' +
+      '<g fill="#3a8a3a"><ellipse cx="615" cy="315" rx="52" ry="16" transform="rotate(-20 615 315)"/><ellipse cx="655" cy="310" rx="48" ry="15" transform="rotate(18 655 310)"/></g></g>' +
+      '<g><polygon points="470,430 530,430 500,380" fill="#c8b88a" stroke="#8a7a5a" stroke-width="3"/><rect x="494" y="400" width="12" height="30" fill="#5a4a30"/></g>' +
+      '<g><rect x="280" y="380" width="8" height="50" fill="#5a4a30"/><polygon points="288,380 322,388 288,398" fill="#c0392b"/></g>' +
+      '<g><rect x="520" y="400" width="110" height="14" fill="#8a6a3a"/><rect x="530" y="414" width="10" height="34" fill="#6a4a2a"/><rect x="610" y="414" width="10" height="34" fill="#6a4a2a"/>' +
+      '<rect x="545" y="380" width="60" height="22" rx="4" fill="#a8824e" stroke="#6a4a2a" stroke-width="2"/></g>' +
+      '</svg>'
+    },
+    archive: {
+      name: "The Signal Archive", sub: "Post-loss signals lab · present day",
+      blurb: "A quiet lab where every signal heard after July 2, 1937 was collected and studied — schoolgirl notebooks, Navy logs, and one aluminum panel pulled from a reef, all waiting for a detective.",
+      locked: true,
+      hotspots: [
+        { id: "hs-distress", clue: "distress", x: 30, y: 58, label: "The school notebook" },
+        { id: "hs-panel", clue: "panel", x: 68, y: 50, label: "The reef fragment", requires: "distress" }
+      ],
+      npcs: ["betty"],
+      art:
+      '<svg viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' +
+      '<defs><linearGradient id="ar-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#141c30"/><stop offset="1" stop-color="#24304d"/></linearGradient>' +
+      '<linearGradient id="ar-screen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0e2a3a"/><stop offset="1" stop-color="#071522"/></linearGradient>' +
+      '<radialGradient id="ar-lamp" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#ffd166" stop-opacity="0.6"/><stop offset="1" stop-color="#ffd166" stop-opacity="0"/></radialGradient></defs>' +
+      '<rect width="800" height="500" fill="url(#ar-bg)"/>' +
+      '<g><rect x="60" y="60" width="300" height="180" rx="8" fill="#1c2a4a" stroke="#39445e" stroke-width="3"/>' +
+      '<rect x="76" y="76" width="268" height="148" fill="#274a6a"/>' +
+      '<g fill="#8fd4a8" opacity="0.8"><ellipse cx="140" cy="130" r="6"/><ellipse cx="210" cy="170" r="6"/><ellipse cx="300" cy="120" r="6"/></g>' +
+      '<path d="M90 200 L200 110 L320 190" stroke="#ff5a5a" stroke-width="4" fill="none" stroke-dasharray="10 6"/>' +
+      '<g font-family="monospace" font-size="13" fill="#ffd166"><text x="92" y="96">157\u00B0 / 337\u00B0</text></g></g>' +
+      '<g><rect x="420" y="60" width="320" height="180" rx="8" fill="#2c2138" stroke="#4a3a5a" stroke-width="3"/>' +
+      '<g><rect x="440" y="84" width="60" height="70" rx="4" fill="#8a6a3a"/><rect x="510" y="84" width="60" height="70" rx="4" fill="#7a5a34"/><rect x="580" y="84" width="60" height="70" rx="4" fill="#8a6a3a"/><rect x="650" y="84" width="60" height="70" rx="4" fill="#7a5a34"/>' +
+      '<rect x="440" y="164" width="60" height="56" rx="4" fill="#7a5a34"/><rect x="510" y="164" width="60" height="56" rx="4" fill="#8a6a3a"/><rect x="580" y="164" width="60" height="56" rx="4" fill="#7a5a34"/><rect x="650" y="164" width="60" height="56" rx="4" fill="#8a6a3a"/></g></g>' +
+      '<g><rect x="80" y="300" width="300" height="120" rx="8" fill="#4a3826"/>' +
+      '<rect x="110" y="230" width="150" height="80" rx="6" fill="url(#ar-screen)" stroke="#39445e" stroke-width="3"/>' +
+      '<path d="M122 275 q14 -30 28 -12 q14 -40 28 -20 q14 -34 28 -14 q14 -22 28 -8" stroke="#5fe38a" stroke-width="3" fill="none"/>' +
+      '<rect x="290" y="250" width="70" height="60" rx="4" fill="#e8e2d2" transform="rotate(-4 290 250)"/>' +
+      '<g stroke="#233246" stroke-width="2" opacity="0.5"><line x1="300" y1="264" x2="352" y2="260"/><line x1="300" y1="278" x2="352" y2="274"/></g></g>' +
+      '<g><rect x="450" y="310" width="260" height="110" rx="8" fill="#3a2c48"/>' +
+      '<polygon points="480,380 620,380 600,300 500,300" fill="#9aa2b0" stroke="#5a6474" stroke-width="3"/>' +
+      '<g fill="#5a6474"><circle cx="530" cy="340" r="5"/><circle cx="560" cy="330" r="5"/><circle cx="560" cy="355" r="5"/><circle cx="590" cy="342" r="5"/></g></g>' +
+      '<g><path d="M700 400 q0 -40 30 -40 q30 0 30 40" stroke="#8a7c5c" stroke-width="6" fill="none"/><rect x="688" y="392" width="24" height="34" rx="8" fill="#2c2138"/><rect x="748" y="392" width="24" height="34" rx="8" fill="#2c2138"/></g>' +
+      '<g><rect x="380" y="180" width="10" height="120" fill="#8a5a2a"/><ellipse cx="385" cy="310" rx="60" ry="44" fill="url(#ar-lamp)" opacity="0.7"/></g>' +
+      '<rect y="440" width="800" height="60" fill="#0d1322"/>' +
+      '</svg>'
+    }
+  };
+
+  var SCENE_ORDER = ["itasca", "lae", "nikumaroro", "archive"];
+
+  /* -------------------------------- NPCS ------------------------------- */
+  var NPCS = {
+    radioman: {
+      name: "Petty Officer Hank Marlow", scene: "itasca", role: "Coast Guard radioman",
+      intro: "A young radioman in a Coast Guard uniform looks up from his dials, headphones around his neck. \u2018You're the detective? Pull up a stool. I've been listening since dawn — and friend, what I heard this morning I will never forget.\u2019",
+      topics: [
+        {
+          q: "What did you hear that morning?",
+          a: "Her voice, faint through the static — she said they were on the line 157 337 and would repeat on 6210. We answered on every frequency we had, but she never seemed to hear us. Around 8:43, ship time, she spoke her last — and then the static just... kept going.",
+          note: "Last calls ~8:43 AM ship time — then only static."
+        },
+        {
+          q: "What does \u2018line 157 337\u2019 mean?",
+          requires: "radiolog",
+          a: "It's navigator talk. Fred Noonan shot the sunrise with his sextant and drew one line of position through Howland — 157 degrees one way, 337 the other. So Amelia flew along it: north a while, then south, looking. It's a good plan — unless your fuel runs out first.",
+          note: "A sun-line through Howland — flown north, then south."
+        },
+        {
+          q: "Could anyone have reached them from here?",
+          requires: "radiolog",
+          a: "We searched for days — planes from the Itasca, then the Navy, covering thousands of miles of ocean. They checked the islands too, including Gardner, now called Nikumaroro. There's a research camp there today still finding things. Go see what they've dug up — I'll keep listening.",
+          unlockScene: "nikumaroro",
+          note: "Searchers swept the islands too — Nikumaroro's camp keeps digging."
+        }
+      ]
+    },
+    researcher: {
+      name: "Dr. Lena Park", scene: "nikumaroro", role: "Expedition archaeologist",
+      intro: "A woman in a field vest and canvas hat waves you over to a folding table covered in labeled finds. \u2018Dr. Lena Park — welcome to the mystery's second crime scene. Everything on this table came out of the sand or the surf. Ask me anything.\u2019",
+      topics: [
+        {
+          q: "What did the 1940 searchers find?",
+          a: "A British officer named Gallagher found thirteen bones under a ren tree and sent measurements to a doctor in Fiji. The doctor guessed wrong about who they were — and then the war came and the bones were lost. But the measurements survived on paper, and modern science read them again.",
+          note: "13 bones found in 1940 — measured, then lost in the war."
+        },
+        {
+          q: "What about the sextant box?",
+          requires: "bones",
+          a: "Found near the same spot: a wooden box made for a navigator's sextant. Now — who on that flight was the navigator? Fred Noonan. A castaway with a sextant is a navigator who landed somewhere and waited — and kept hoping.",
+          note: "A navigator's sextant box — Noonan's trade, near the bones."
+        },
+        {
+          q: "Why do people keep digging here?",
+          requires: "bones",
+          a: "Because of the voices. For days after July 2, people across the Pacific and America heard faint distress calls on the Electra's frequencies — someone was transmitting from somewhere. Every one of those reports was collected in the Signal Archive. Go listen to them yourself.",
+          unlockScene: "archive",
+          note: "Distress calls were heard for days — the archive collected them all."
+        }
+      ]
+    },
+    betty: {
+      name: "Betty Klenck", scene: "archive", role: "Teenage shortwave listener, 1937",
+      intro: "A bright-eyed girl of fifteen looks up from a home shortwave set, a school notebook open on her lap. \u2018Hi! I'm Betty. Everybody says I just imagined it — but I know what I heard on July 5th. I wrote it all down, word for word.\u2019",
+      topics: [
+        {
+          q: "What did you hear on your radio?",
+          a: "A woman's voice, scared but clear, on 6210 — the exact frequency Amelia used. She said her name was Amelia Earhart and asked someone to come out on the water. My hands were shaking so hard I could barely write — but I got it down, every word, in this notebook.",
+          note: "A girl's notebook: a woman's voice on 6210, asking for help."
+        },
+        {
+          q: "Are you sure it was really her?",
+          requires: "distress",
+          a: "The grown-ups laughed — a schoolgirl in Florida hearing the Pacific? But I knew the frequencies from the newspapers, and what I copied matched: 6210, the water, the name. Years later the experts read my notebook and said the details fit. I just wrote what I heard.",
+          note: "The details she copied matched the Electra's frequencies."
+        },
+        {
+          q: "What do you think happened to her?",
+          a: "I think she landed somewhere and called for help as long as her batteries lasted — and I think somebody, somewhere, should have come faster. Whatever your board says, detective, she was the bravest person I ever heard. Don't let the world forget her."
+        }
+      ]
+    }
+  };
+
+  /* ------------------------------ THEORIES ------------------------------ */
+  /* The deduction board: each theory needs its evidence items dragged
+     onto it. Every clue fits exactly one theory. Three red-herring decoy
+     chips (DECOYS) also sit in the pool — they fit NO theory and must be
+     left alone. */
+  var THEORIES = [
+    {
+      id: "crash",
+      title: "Crashed and sank near Howland",
+      correct: true,
+      desc: "The mainstream conclusion, and the U.S. government's official finding: fighting unexpected headwinds, the Electra burned through its fuel along the 157/337 line and ditched in the open ocean — too far out, in water too deep, for any wreckage to ever be found.",
+      supports: ["radiolog", "fuel", "antenna"]
+    },
+    {
+      id: "castaway",
+      title: "Castaway on Nikumaroro",
+      desc: "She reached Gardner Island — now Nikumaroro — and set the Electra down on its reef flat at low tide, then called for help for days as the surf tore the plane apart. The bones, the sextant box, and the reef aluminum are, to some researchers, her trail.",
+      supports: ["bones", "sextant", "panel"]
+    },
+    {
+      id: "captured",
+      title: "Captured and taken to Saipan",
+      desc: "The fringe theory, built on rumor: off the 157/337 line, the Electra came down in Japanese-held waters and its crew were taken to Saipan — some even claim the post-loss signals were staged to cover it up. No wreckage, no records, no proof has ever surfaced.",
+      supports: ["chart", "distress"]
+    }
+  ];
+
+  /* Red-herring decoys for the deduction board pool. Not clues: no score,
+     no journal entry, never placeable — dragging one to any theory counts
+     as a wrong drop. */
+  var DECOYS = [
+    { name: "Time-portal vortex", icon: "🌀" },
+    { name: "Sea-monster sighting", icon: "🦑" },
+    { name: "Alien saucer", icon: "🛸" }
+  ];
+
+  /* -------------------------------- INTRO ------------------------------- */
+  var INTRO = [
+    {
+      kicker: "Lae, New Guinea",
+      title: "July 2, 1937 \u00B7 10:00 AM",
+      text: "Amelia Earhart and her navigator Fred Noonan climb into the silver Lockheed Electra and lift off — bound for tiny Howland Island, 2,556 miles across the open Pacific. It is the longest, hardest leg of their around-the-world flight."
+    },
+    {
+      kicker: "The last calls",
+      title: "8:43 AM: \u2018We are on the line 157 337\u2019",
+      text: "The Coast Guard cutter Itasca waits off Howland, listening on every frequency. Her voice comes through the static one final time — then nothing. The most famous aviation mystery of the century has just begun."
+    },
+    {
+      kicker: "Your assignment",
+      title: "Detective, the case is yours",
+      text: "Visit four locations, question three witnesses, and gather at least 6 of the 8 clues. Then face the deduction board \u2014 match every piece of evidence to its theory \u2014 and close the case, if you can."
+    }
+  ];
+
+  var DATA = {
+    CLUES: CLUES,
+    SCENES: SCENES,
+    SCENE_ORDER: SCENE_ORDER,
+    NPCS: NPCS,
+    THEORIES: THEORIES,
+    DECOYS: DECOYS,
+    INTRO: INTRO,
+    CLUES_TO_UNLOCK_DEDUCTION: 6,
+    RANKS: [
+      { min: 2100, title: "Chief Inspector" },
+      { min: 1650, title: "Detective Sergeant" },
+      { min: 1050, title: "Constable" },
+      { min: 0, title: "Rookie" }
+    ]
+  };
+
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = DATA;
+  } else {
+    root.BK_DATA = DATA;
+  }
+})(typeof window !== "undefined" ? window : this);
+/*__DATA_END__*/
+
+/*__ART_BEGIN__*/
+window.BK_PORTAL_ART = {"scenes":{"archive":"assets/portal-art/media-generation-scene-archive-0-22e7d80e7ce943deb050095487f99921.webp","itasca":"assets/portal-art/media-generation-scene-itasca-0-5655c524f2dc43469051cd5d38d33bbf.webp","lae":"assets/portal-art/media-generation-scene-lae-0-7c9a10ab37ab43b18e8e71fa6f5a71b7.webp","nikumaroro":"assets/portal-art/media-generation-scene-nikumaroro-0-3fa83a7767dd449eac2d47baa3cec669.webp"},"npcs":{"betty":"assets/portal-art/media-generation-npc-betty-0-7bdc33a361fb498ea4aaf62626447a47.webp","radioman":"assets/portal-art/media-generation-npc-radioman-0-d0e2ad49842245e18b5418c72a3a95d1.webp","researcher":"assets/portal-art/media-generation-npc-researcher-0-4f6b91806ae24066b446c89b082e8e58.webp"},"title":"assets/portal-art/media-generation-title-keyart-earhart-0-f60ca9e68f7b4fb88430f8d9198fe46e.webp"};
+/*__ART_END__*/
+
+/* =========================================================================
+ * game.js — "Beast Kid: Case Files — Case #5: The Amelia Earhart Disappearance"
+ * Point-and-click detective game. Vanilla JS, no dependencies.
+ *
+ * Scoring (portal rebalance — NO speed bonus; thoroughness wins):
+ *   clue found ......... +100
+ *   insight noted ...... +50
+ *   topic asked ........ +25
+ *   evidence matched ... +150
+ *   hint ............... -50
+ * Ranks: score thresholds in data RANKS. Stars: 1-3 on thoroughness +
+ * deduction accuracy, persisted as best in localStorage.
+ * ========================================================================= */
+(function () {
+  "use strict";
+
+  var D = window.BK_DATA;
+  var PORTAL_ART = window.BK_PORTAL_ART || { scenes: {}, npcs: {}, title: null };
+  var $ = function (s) { return document.querySelector(s); };
+
+  var CLUE_PTS = 100, INSIGHT_PTS = 50, TOPIC_PTS = 25, MATCH_PTS = 150, HINT_COST = 50;
+
+  /* ------------------------------ state -------------------------------- */
+  function freshState() {
+    return {
+      clues: {},          // clueId -> true
+      notes: [],          // {text}
+      asked: {},          // "npc:index" -> true (dialogue asked once)
+      placed: {},         // clueId -> theoryId (deduction board matches)
+      wrongDrops: 0,      // wrong drag attempts on the board
+      scenes: ["itasca", "lae"],
+      screen: "title",
+      scene: null,
+      score: 0,
+      hints: 0,
+      elapsed: 0,         // seconds of active play (display only — no bonus)
+      timerId: null,
+      finished: false
+    };
+  }
+  var state = freshState();
+  var currentMood = "title";
+
+  /* ---------------------------- helpers -------------------------------- */
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+  function clueCount() { return Object.keys(state.clues).length; }
+  function topicCount() { return Object.keys(state.asked).length; }
+  function fmtTime(sec) {
+    var m = Math.floor(sec / 60), s = sec % 60;
+    return (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+  }
+
+  function toast(msg, ms) {
+    var root = $("#toast-root");
+    while (root.children.length >= 3) root.removeChild(root.firstChild); // cap stacked toasts
+    var el = document.createElement("div");
+    el.className = "toast";
+    el.innerHTML = msg;
+    root.appendChild(el);
+    requestAnimationFrame(function () { el.classList.add("show"); });
+    setTimeout(function () {
+      el.classList.remove("show");
+      setTimeout(function () { el.remove(); }, 400);
+    }, ms || 3400);
+  }
+  function clearToasts() { $("#toast-root").innerHTML = ""; }
+
+  function openModal(html) {
+    var root = $("#modal-root");
+    root.innerHTML = '<div class="modal-back"><div class="modal">' + html + "</div></div>";
+    root.classList.add("open");
+    var back = root.querySelector(".modal-back");
+    back.addEventListener("click", function (e) {
+      if (e.target === back) closeModal();
+    });
+  }
+  function closeModal() {
+    var root = $("#modal-root");
+    root.classList.remove("open");
+    root.innerHTML = "";
+  }
+  function confirmModal(msg, okLabel, onYes) {
+    openModal(
+      "<h3>Are you sure?</h3><p>" + msg + "</p>" +
+      '<div class="btn-row"><button class="btn" id="m-no">Cancel</button>' +
+      '<button class="btn primary" id="m-yes">' + esc(okLabel) + "</button></div>"
+    );
+    $("#m-no").addEventListener("click", function () { window.AudioFX.click(); closeModal(); });
+    $("#m-yes").addEventListener("click", function () { window.AudioFX.click(); closeModal(); onYes(); });
+  }
+
+  /* ------------------------------ HUD ---------------------------------- */
+  function updateHUD() {
+    $("#hud-clues").textContent = clueCount() + "/" + Object.keys(D.CLUES).length;
+    $("#hud-time").textContent = fmtTime(state.elapsed);
+    $("#hud-score").textContent = state.score;
+    var muteBtn = $("#btn-mute");
+    muteBtn.textContent = window.AudioFX.muted ? "\uD83D\uDD07" : "\uD83D\uDD0A";
+    muteBtn.setAttribute("aria-label", window.AudioFX.muted ? "Unmute" : "Mute");
+  }
+
+  function startTimer() {
+    stopTimer();
+    state.timerId = setInterval(function () {
+      state.elapsed++;
+      $("#hud-time").textContent = fmtTime(state.elapsed);
+    }, 1000);
+  }
+  function stopTimer() {
+    if (state.timerId) { clearInterval(state.timerId); state.timerId = null; }
+  }
+
+  function showScreen(name) {
+    state.screen = name;
+    var screens = document.querySelectorAll(".screen");
+    for (var i = 0; i < screens.length; i++) screens[i].classList.add("hidden");
+    $("#screen-" + name).classList.remove("hidden");
+    $("#hud").classList.toggle("hidden", name === "title" || name === "results");
+    currentMood = name === "scene" ? (state.scene || "title") : name;
+    if (window.AudioFX && window.AudioFX.setMood) {
+      try { window.AudioFX.setMood(currentMood); } catch (e) {}
+    }
+    window.scrollTo(0, 0);
+  }
+
+  /* --------------------------- title / intro ---------------------------- */
+  var introIdx = 0;
+  function renderIntro() {
+    var c = D.INTRO[introIdx];
+    $("#intro-kicker").textContent = c.kicker;
+    $("#intro-title").textContent = c.title;
+    $("#intro-text").textContent = c.text;
+    $("#intro-count").textContent = (introIdx + 1) + " / " + D.INTRO.length;
+    $("#btn-intro-back").disabled = introIdx === 0;
+    $("#btn-intro-next").textContent = introIdx === D.INTRO.length - 1 ? "Open the case file \u2192" : "Next \u2192";
+  }
+
+  function beginInvestigation() {
+    window.AudioFX.unlock();
+    window.AudioFX.click();
+    showScreen("intro");
+    introIdx = 0;
+    renderIntro();
+  }
+
+  function finishIntro() {
+    window.AudioFX.click();
+    startTimer();
+    window.Platform.gameplayStart();   // active gameplay begins
+    window.AudioFX.startAmbient();
+    renderMap();
+    showScreen("map");
+  }
+
+  /* --------------------------- best persistence ------------------------- */
+  function saveBest(stars, rank, allClues) {
+    try {
+      var prev = null;
+      try { prev = JSON.parse(window.localStorage.getItem("bk_case5_best") || "null"); } catch (e) {}
+      var best = { stars: stars, score: state.score, rank: rank, allClues: allClues };
+      if (!(prev && (prev.stars > stars || (prev.stars === stars && prev.score >= state.score)))) {
+        window.localStorage.setItem("bk_case5_best", JSON.stringify(best));
+      }
+    } catch (e) {}
+  }
+  function showBest() {
+    var el = $("#best-line");
+    try {
+      var b = JSON.parse(window.localStorage.getItem("bk_case5_best") || "null");
+      if (b && b.stars) {
+        el.textContent = "Your best: " + "\u2605".repeat(b.stars) + "\u2606".repeat(3 - b.stars) +
+          " \u00B7 " + b.score + " pts (" + b.rank + ")" + (b.allClues ? " \u00B7 \uD83D\uDD0E all 8 clues" : "");
+        el.classList.remove("hidden");
+        return;
+      }
+    } catch (e) {}
+    el.classList.add("hidden");
+  }
+
+  /* -------------------------------- map --------------------------------- */
+  function renderMap() {
+    var wrap = $("#map-cards");
+    wrap.innerHTML = "";
+    D.SCENE_ORDER.forEach(function (sid) {
+      var sc = D.SCENES[sid];
+      var locked = state.scenes.indexOf(sid) === -1;
+      var found = sc.hotspots.filter(function (h) { return state.clues[h.clue]; }).length;
+      var card = document.createElement("button");
+      card.className = "map-card" + (locked ? " locked" : "");
+      card.innerHTML =
+        '<div class="map-card-name">' + esc(sc.name) + "</div>" +
+        '<div class="map-card-sub">' + esc(sc.sub) + "</div>" +
+        (locked
+          ? '<div class="map-card-lock">\uD83D\uDD12 Locked \u2014 follow the evidence</div>'
+          : '<div class="map-card-progress">' + found + "/" + sc.hotspots.length + " clues</div>");
+      if (!locked) {
+        card.addEventListener("click", function () {
+          window.AudioFX.click();
+          openScene(sid);
+        });
+      } else {
+        card.addEventListener("click", function () {
+          toast("This location is locked. Keep following the evidence.");
+        });
+      }
+      wrap.appendChild(card);
+    });
+
+    var n = clueCount(), need = D.CLUES_TO_UNLOCK_DEDUCTION;
+    var btn = $("#btn-deduction");
+    btn.disabled = n < need;
+    btn.innerHTML = n >= need
+      ? "\uD83E\uDDEC Open the deduction board"
+      : "\uD83E\uDDEC Deduction board (" + n + "/" + need + " clues needed)";
+  }
+
+  /* ------------------------------- scene -------------------------------- */
+  function renderSceneArt(sid) {
+    var sc = D.SCENES[sid];
+    var wrap = $("#scene-art");
+    var url = PORTAL_ART.scenes && PORTAL_ART.scenes[sid];
+    if (url) {
+      // Illustrated noir background (build-time manifest guarantees the file
+      // exists; onerror is a bare-HTML-deployment safety net only).
+      wrap.innerHTML = "";
+      var img = document.createElement("img");
+      img.className = "scene-bg";
+      img.src = url;
+      img.alt = "";
+      img.draggable = false;
+      img.addEventListener("error", function () { wrap.innerHTML = sc.art; });
+      wrap.appendChild(img);
+    } else {
+      wrap.innerHTML = sc.art;   // inline SVG fallback
+    }
+  }
+
+  function openScene(sid) {
+    state.scene = sid;
+    var sc = D.SCENES[sid];
+    window.Platform.gameplayStart();
+
+    renderSceneArt(sid);
+    $("#scene-name").textContent = sc.name;
+    $("#scene-sub").textContent = sc.sub;
+    $("#scene-blurb").textContent = sc.blurb;
+
+    // hotspots
+    var layer = $("#hotspot-layer");
+    layer.innerHTML = "";
+    sc.hotspots.forEach(function (hs) {
+      if (hs.requires && !state.clues[hs.requires]) return;   // chained clue
+      var found = !!state.clues[hs.clue];
+      var b = document.createElement("button");
+      b.className = "hotspot" + (found ? " found" : "");
+      b.style.left = hs.x + "%";
+      b.style.top = hs.y + "%";
+      b.setAttribute("aria-label", hs.label);
+      b.dataset.hs = hs.id;
+      b.innerHTML = "<span>" + (found ? "\u2713" : "?") + "</span>";
+      b.addEventListener("click", function (e) {
+        e.stopPropagation();
+        onHotspot(hs);
+      });
+      layer.appendChild(b);
+    });
+
+    // NPC talk chips
+    var talk = $("#talk-row");
+    talk.innerHTML = "";
+    (sc.npcs || []).forEach(function (nid) {
+      var npc = D.NPCS[nid];
+      var b = document.createElement("button");
+      b.className = "talk-chip";
+      b.dataset.npc = nid;
+      b.innerHTML = "\uD83D\uDCAC Talk: " + esc(npc.name);
+      b.addEventListener("click", function () { openNPC(nid); });
+      talk.appendChild(b);
+    });
+
+    showScreen("scene");
+    updateHUD();
+  }
+
+  function pulseHotspot(hsId) {
+    var el = document.querySelector('[data-hs="' + hsId + '"]');
+    if (el) {
+      el.classList.add("pulse");
+      setTimeout(function () { el.classList.remove("pulse"); }, 2600);
+    }
+  }
+
+  function onHotspot(hs) {
+    window.AudioFX.click();
+    var clue = D.CLUES[hs.clue];
+    if (state.clues[hs.clue]) {
+      toast("<b>" + esc(clue.name) + ".</b> " + esc(clue.flavor));
+      return;
+    }
+    // award the clue
+    state.clues[hs.clue] = true;
+    state.score += CLUE_PTS;
+    window.AudioFX.clue();
+    openModal(
+      '<div class="clue-head"><span class="clue-icon">' + clue.icon + '</span>' +
+      '<h3>' + esc(clue.name) + "</h3></div>" +
+      "<p>" + esc(clue.desc) + "</p>" +
+      '<div class="clue-points">+' + CLUE_PTS + ' pts \u00B7 added to your journal</div>' +
+      '<button class="btn primary" id="m-ok">Continue investigating</button>'
+    );
+    $("#m-ok").addEventListener("click", function () {
+      window.AudioFX.click();
+      closeModal();
+      openScene(state.scene);   // re-render: hotspot turns to checkmark
+      updateHUD();
+    });
+    updateHUD();
+  }
+
+  /* ------------------------------ dialogue ------------------------------ */
+  function openNPC(nid) {
+    window.AudioFX.click();
+    var npc = D.NPCS[nid];
+    var portrait = "";
+    var purl = PORTAL_ART.npcs && PORTAL_ART.npcs[nid];
+    if (purl) {
+      portrait = '<img class="npc-portrait" alt="" draggable="false">';
+    }
+    var topics = npc.topics.map(function (t, i) {
+      var ok = !t.requires || state.clues[t.requires];
+      var asked = !!state.asked[nid + ":" + i];
+      return { t: t, i: i, ok: ok, asked: asked };
+    });
+    var html =
+      '<div class="npc-head">' + portrait +
+      '<div class="npc-titles"><h3>' + esc(npc.name) + '</h3><div class="npc-role">' + esc(npc.role) + "</div></div></div>" +
+      '<p class="npc-intro">' + esc(npc.intro) + "</p>" +
+      '<div class="topics">' +
+      topics.map(function (o) {
+        if (!o.ok) {
+          return '<button class="btn topic locked" data-i="' + o.i + '" disabled>\uD83D\uDD12 ' + esc(o.t.q) + "<small>Find more evidence first</small></button>";
+        }
+        return '<button class="btn topic" data-i="' + o.i + '">' + esc(o.t.q) +
+          (o.asked ? " <small>\u2713 asked</small>" : "") + "</button>";
+      }).join("") +
+      "</div>" +
+      '<button class="btn" id="m-ok">Leave</button>';
+    openModal(html);
+    if (purl) {
+      var img = document.querySelector("#modal-root .npc-portrait");
+      if (img) {
+        img.addEventListener("error", function () { img.remove(); });
+        img.src = purl;
+      }
+    }
+    $("#m-ok").addEventListener("click", function () { window.AudioFX.click(); closeModal(); });
+    var btns = document.querySelectorAll("#modal-root .topic:not(.locked)");
+    for (var k = 0; k < btns.length; k++) {
+      (function (b) {
+        b.addEventListener("click", function () {
+          answerTopic(nid, parseInt(b.dataset.i, 10));
+        });
+      })(btns[k]);
+    }
+  }
+
+  function answerTopic(nid, i) {
+    window.AudioFX.paper();
+    var npc = D.NPCS[nid];
+    var t = npc.topics[i];
+    var key = nid + ":" + i;
+    var first = !state.asked[key];
+    state.asked[key] = true;
+
+    var effects = "";
+    if (first) {
+      state.score += TOPIC_PTS;
+      effects += '<div class="fx">\uD83D\uDCAC Witness questioned (+' + TOPIC_PTS + ' pts)</div>';
+      if (t.note) {
+        state.notes.push({ text: t.note });
+        state.score += INSIGHT_PTS;
+        effects += '<div class="fx">\uD83D\uDCDD Insight noted (+' + INSIGHT_PTS + ' pts)</div>';
+      }
+      if (t.unlockScene && state.scenes.indexOf(t.unlockScene) === -1) {
+        state.scenes.push(t.unlockScene);
+        effects += '<div class="fx big">\uD83D\uDCCD New location unlocked: ' + esc(D.SCENES[t.unlockScene].name) + "</div>";
+        window.AudioFX.clue();
+      }
+      if (t.hintScene) {
+        effects += '<div class="fx">\uD83D\uDCA1 Worth a look: ' + esc(D.SCENES[t.hintScene].name) + "</div>";
+      }
+    }
+
+    openModal(
+      '<div class="npc-head"><h3>' + esc(npc.name) + "</h3></div>" +
+      '<p class="q">\u201C' + esc(t.q) + "\u201D</p>" +
+      '<p class="a">' + esc(t.a) + "</p>" +
+      effects +
+      '<button class="btn primary" id="m-ok">' + (t.unlockScene && first ? "Go to the map" : "Back") + "</button>"
+    );
+    $("#m-ok").addEventListener("click", function () {
+      window.AudioFX.click();
+      closeModal();
+      if (t.unlockScene && first) { renderMap(); showScreen("map"); }
+      else { openScene(state.scene); }
+      updateHUD();
+    });
+    updateHUD();
+  }
+
+  /* ------------------------------ journal ------------------------------- */
+  function openJournal() {
+    window.AudioFX.paper();
+    var ids = Object.keys(D.CLUES).filter(function (id) { return state.clues[id]; });
+    var html = "";
+    html += '<div class="j-sec"><b>Clues ' + ids.length + "/" + Object.keys(D.CLUES).length + "</b></div>";
+    html += ids.length
+      ? ids.map(function (id) {
+          var c = D.CLUES[id];
+          return '<div class="j-clue"><span class="j-icon">' + c.icon + '</span><div><b>' + esc(c.name) + "</b><p>" + esc(c.desc) + "</p></div></div>";
+        }).join("")
+      : "<p class='j-empty'>No clues yet. Tap the glowing <b>?</b> markers in each location.</p>";
+    if (state.notes.length) {
+      html += '<div class="j-sec"><b>Insights</b></div>' + state.notes.map(function (n) {
+        return '<div class="j-note">\uD83D\uDCDD ' + esc(n.text) + "</div>";
+      }).join("");
+    }
+    $("#journal-body").innerHTML = html;
+    $("#journal").classList.add("open");
+  }
+  function closeJournal() { $("#journal").classList.remove("open"); }
+
+  /* -------------------------------- hint -------------------------------- */
+  function nextHintTarget() {
+    // 1) unlock guidance first: radiolog found but nikumaroro still locked -> Radioman
+    if (state.clues.radiolog && state.scenes.indexOf("nikumaroro") === -1) {
+      return { kind: "npc", scene: "itasca", npc: "radioman", msg: "Ask <b>Petty Officer Marlow</b> in the <b>radio room</b> whether anyone could have reached them from the ship." };
+    }
+    // 2) bones found but the archive still locked -> Researcher knows the signal history
+    if (state.clues.bones && state.scenes.indexOf("archive") === -1) {
+      return { kind: "npc", scene: "nikumaroro", npc: "researcher", msg: "Ask <b>Dr. Park</b> at the <b>Nikumaroro camp</b> why people keep digging here." };
+    }
+    // 3) first unfound, reachable hotspot in scene order
+    for (var s = 0; s < D.SCENE_ORDER.length; s++) {
+      var sid = D.SCENE_ORDER[s];
+      if (state.scenes.indexOf(sid) === -1) continue;
+      var sc = D.SCENES[sid];
+      for (var h = 0; h < sc.hotspots.length; h++) {
+        var hs = sc.hotspots[h];
+        if (hs.requires && !state.clues[hs.requires]) continue;
+        if (!state.clues[hs.clue]) return { kind: "hotspot", scene: sid, hs: hs };
+      }
+    }
+    return null;
+  }
+
+  function grantHint() {
+    var t = nextHintTarget();
+    state.hints++;
+    if (!t) {
+      toast("You\u2019ve found every clue. Time for the <b>deduction board</b>.");
+      return;
+    }
+    if (t.kind === "npc") { toast("\uD83D\uDCA1 " + t.msg); return; }
+    if (state.scene === t.scene) {
+      toast("\uD83D\uDCA1 Look closely at the <b>" + esc(t.hs.label.toLowerCase()) + "</b>\u2026");
+      pulseHotspot(t.hs.id);
+    } else {
+      toast("\uD83D\uDCA1 A clue waits at the <b>" + esc(D.SCENES[t.scene].name) + "</b>. Open the map to travel.");
+    }
+  }
+
+  function onHintButton() {
+    window.AudioFX.click();
+    if (window.Platform.isCrazyGames) {
+      // Rewarded ad flow: user-initiated, reward ONLY on adFinished.
+      var btn = $("#btn-hint");
+      btn.disabled = true;
+      toast("Loading hint\u2026");
+      window.Platform.rewardedAd(function (ok) {
+        btn.disabled = false;
+        if (ok) { grantHint(); }
+        else { toast("The ad couldn\u2019t load. Try again in a moment \u2014 the button still works."); }
+      });
+    } else {
+      // itch.io / local: free hint, small score cost, never a dead button.
+      state.score = Math.max(0, state.score - HINT_COST);
+      updateHUD();
+      grantHint();
+    }
+  }
+
+  /* ------------------------- deduction: drag puzzle --------------------- */
+  var selectedChip = null;   // tap-to-place selection
+
+  function theoryById(id) {
+    for (var i = 0; i < D.THEORIES.length; i++) {
+      if (D.THEORIES[i].id === id) return D.THEORIES[i];
+    }
+    return null;
+  }
+
+  /** slots still required: found supporting clues not yet matched */
+  function requiredSlots() {
+    var req = [];
+    D.THEORIES.forEach(function (th) {
+      th.supports.forEach(function (cid) {
+        if (state.clues[cid] && !state.placed[cid]) req.push(cid);
+      });
+    });
+    return req;
+  }
+  function deductionDone() { return requiredSlots().length === 0; }
+
+  function openDeduction() {
+    if (clueCount() < D.CLUES_TO_UNLOCK_DEDUCTION) return;
+    window.AudioFX.click();
+    window.Platform.gameplayStop();          // natural break -> midgame ad slot
+    toast("The board is set. One last look at the evidence\u2026");
+    window.Platform.midgameAd().then(function () {
+      renderDeduction();
+      showScreen("deduction");
+    });
+  }
+
+  function clearSelection() {
+    selectedChip = null;
+    var sels = document.querySelectorAll(".ev-chip.selected");
+    for (var i = 0; i < sels.length; i++) sels[i].classList.remove("selected");
+  }
+
+  function toggleSelect(chip) {
+    if (chip.classList.contains("selected")) { clearSelection(); return; }
+    clearSelection();
+    chip.classList.add("selected");
+    selectedChip = chip;
+    toast("Selected <b>" + esc(chip.dataset.name) + "</b> \u2014 now tap the theory it supports.");
+  }
+
+  function wireChip(chip, clueId, clueName) {
+    var startX = 0, startY = 0, ghost = null, dragging = false, pid = null, justDragged = false;
+    chip.addEventListener("pointerdown", function (e) {
+      e.preventDefault();
+      pid = e.pointerId;
+      startX = e.clientX; startY = e.clientY;
+      dragging = false;
+      try { chip.setPointerCapture(pid); } catch (err) {}
+    });
+    chip.addEventListener("pointermove", function (e) {
+      if (pid === null || e.pointerId !== pid) return;
+      var dx = e.clientX - startX, dy = e.clientY - startY;
+      if (!dragging && Math.sqrt(dx * dx + dy * dy) > 10) {
+        dragging = true;
+        ghost = chip.cloneNode(true);
+        ghost.className = "ev-chip drag-ghost";
+        ghost.style.left = e.clientX + "px";
+        ghost.style.top = e.clientY + "px";
+        document.body.appendChild(ghost);
+        chip.style.opacity = "0.35";
+        clearSelection();
+      }
+      if (dragging && ghost) {
+        ghost.style.left = e.clientX + "px";
+        ghost.style.top = e.clientY + "px";
+        var el = document.elementFromPoint(e.clientX, e.clientY);
+        var card = el && el.closest ? el.closest(".theory-card") : null;
+        var hots = document.querySelectorAll(".theory-card.drop-hover");
+        for (var i = 0; i < hots.length; i++) hots[i].classList.remove("drop-hover");
+        if (card) card.classList.add("drop-hover");
+      }
+    });
+    function endDrag(e) {
+      if (pid === null) return;
+      if (e.pointerId !== undefined && e.pointerId !== pid) return;
+      pid = null;
+      var hots = document.querySelectorAll(".theory-card.drop-hover");
+      for (var i = 0; i < hots.length; i++) hots[i].classList.remove("drop-hover");
+      if (dragging) {
+        justDragged = true;
+        setTimeout(function () { justDragged = false; }, 50);
+        var el = document.elementFromPoint(e.clientX, e.clientY);
+        var card = el && el.closest ? el.closest(".theory-card") : null;
+        if (ghost) { ghost.remove(); ghost = null; }
+        chip.style.opacity = "";
+        dragging = false;
+        if (card) attemptPlace(clueId, card.getAttribute("data-theory"));
+      }
+    }
+    chip.addEventListener("pointerup", endDrag);
+    chip.addEventListener("pointercancel", function () {
+      pid = null; dragging = false;
+      if (ghost) { ghost.remove(); ghost = null; }
+      chip.style.opacity = "";
+    });
+    // tap / keyboard: click only fires as a tap when it wasn't a drag
+    chip.addEventListener("click", function () {
+      if (justDragged) return;
+      toggleSelect(chip);
+    });
+  }
+
+  function attemptPlace(clueId, theoryId) {
+    var th = theoryById(theoryId);
+    if (!th) return;
+    if (clueId.indexOf("decoy:") === 0) {
+      // Red herring: never placeable — bounces back with a wrong-drop penalty.
+      state.wrongDrops++;
+      window.AudioFX.wrong();
+      var card = document.querySelector('.theory-card[data-theory="' + theoryId + '"]');
+      if (card) {
+        card.classList.add("shake");
+        setTimeout(function () { card.classList.remove("shake"); }, 450);
+      }
+      toast("That's a red herring \u2014 it doesn't support <b>any</b> theory. Leave it in the pool.");
+      return;
+    }
+    if (state.placed[clueId]) { toast("Already matched on the board."); return; }
+    if (th.supports.indexOf(clueId) === -1) {
+      // wrong fit: feedback, correctable, no score change
+      state.wrongDrops++;
+      window.AudioFX.wrong();
+      var card = document.querySelector('.theory-card[data-theory="' + theoryId + '"]');
+      if (card) {
+        card.classList.add("shake");
+        setTimeout(function () { card.classList.remove("shake"); }, 450);
+      }
+      toast("That doesn\u2019t fit <b>" + esc(th.title) + "</b> \u2014 re-read what the theory claims, and try another.");
+      return;
+    }
+    state.placed[clueId] = theoryId;
+    state.score += MATCH_PTS;
+    window.AudioFX.snap();
+    clearSelection();
+    renderDeduction();
+    updateHUD();
+    if (deductionDone()) {
+      toast("\u2705 The board is complete \u2014 every link matched. Close the case!");
+    } else {
+      toast("\u2705 <b>" + esc(D.CLUES[clueId].name) + "</b> locks in (+" + MATCH_PTS + ").");
+    }
+  }
+
+  function updateDedProgress() {
+    var totalReq = 0, doneReq = 0;
+    D.THEORIES.forEach(function (th) {
+      th.supports.forEach(function (cid) {
+        if (state.clues[cid]) { totalReq++; if (state.placed[cid]) doneReq++; }
+      });
+    });
+    $("#ded-progress").textContent =
+      "Evidence matched: " + doneReq + "/" + totalReq + " links \u00B7 " +
+      clueCount() + "/" + Object.keys(D.CLUES).length + " clues \u00B7 " +
+      state.notes.length + " insights";
+    var btn = $("#btn-close-case");
+    var done = totalReq > 0 && doneReq === totalReq;
+    btn.disabled = !done;
+    btn.textContent = done ? "\u2705 Close the case" : "\uD83D\uDD12 Close the case (" + doneReq + "/" + totalReq + " links)";
+  }
+
+  function renderDeduction() {
+    clearSelection();
+    var pool = $("#evidence-pool");
+    pool.innerHTML = '<p class="pool-label">Your evidence \u2014 drag each clue onto the theory it supports (or tap a clue, then tap a theory). Watch out: some chips are red herrings that fit no theory.</p>';
+    Object.keys(D.CLUES).forEach(function (cid) {
+      if (!state.clues[cid] || state.placed[cid]) return;
+      var c = D.CLUES[cid];
+      var chip = document.createElement("button");
+      chip.className = "ev-chip";
+      chip.setAttribute("data-clue", cid);
+      chip.setAttribute("data-name", c.name);
+      chip.innerHTML = esc(c.icon) + " " + esc(c.name);
+      pool.appendChild(chip);
+      wireChip(chip, cid, c.name);
+    });
+    // Red-herring decoys: always present in the pool, never placeable.
+    (D.DECOYS || []).forEach(function (dc, i) {
+      var chip = document.createElement("button");
+      chip.className = "ev-chip";
+      chip.setAttribute("data-clue", "decoy:" + i);
+      chip.setAttribute("data-name", dc.name);
+      chip.innerHTML = esc(dc.icon) + " " + esc(dc.name);
+      pool.appendChild(chip);
+      wireChip(chip, "decoy:" + i, dc.name);
+    });
+
+    var wrap = $("#theory-cards");
+    wrap.innerHTML = "";
+    D.THEORIES.forEach(function (th) {
+      var card = document.createElement("div");
+      card.className = "theory-card";
+      card.setAttribute("data-theory", th.id);
+      var slots = th.supports.map(function (cid) {
+        var c = D.CLUES[cid];
+        if (state.placed[cid]) {
+          return '<li class="ev-slot filled">\u2713 ' + esc(c.icon) + " " + esc(c.name) + "</li>";
+        }
+        if (!state.clues[cid]) {
+          return '<li class="ev-slot missing">\u00B7 undiscovered evidence</li>';
+        }
+        return '<li class="ev-slot">Drop a clue here</li>';
+      }).join("");
+      card.innerHTML =
+        "<h4>" + esc(th.title) + "</h4><p>" + esc(th.desc) + "</p>" +
+        '<ul class="ev-slots">' + slots + "</ul>";
+      card.addEventListener("click", function () {
+        if (selectedChip) {
+          var cid = selectedChip.getAttribute("data-clue");
+          clearSelection();
+          attemptPlace(cid, th.id);
+        }
+      });
+      wrap.appendChild(card);
+    });
+    updateDedProgress();
+  }
+
+  /* ------------------------------ results ------------------------------- */
+  function closeCase() {
+    if (!deductionDone()) return;
+    state.finished = true;
+    stopTimer();
+    clearToasts();   // audit #7: never leave a stale toast on the results screen
+
+    var clues = clueCount();
+    var notes = state.notes.length;
+    var topics = topicCount();
+    var matched = Object.keys(state.placed).length;
+
+    var rank = D.RANKS.filter(function (r) { return state.score >= r.min; })[0].title;
+
+    // stars: thoroughness + deduction accuracy
+    var stars = 1;
+    if (clues === 8 && state.wrongDrops <= 1 && topics >= 7) stars = 3;
+    else if (clues >= 7 && state.wrongDrops <= 3) stars = 2;
+
+    var allClues = clues === 8;
+    $("#res-rank").textContent = rank;
+    $("#res-stars").textContent = "\u2605".repeat(stars) + "\u2606".repeat(3 - stars);
+    var badge = $("#res-badge");
+    if (allClues) {
+      badge.textContent = "\uD83D\uDD0E True Detective \u2014 all 8 clues found";
+      badge.classList.remove("hidden");
+    } else {
+      badge.classList.add("hidden");
+    }
+
+    $("#res-board").innerHTML = D.THEORIES.map(function (th) {
+      var items = th.supports.filter(function (cid) { return state.placed[cid]; })
+        .map(function (cid) { return "<li>\u2713 " + esc(D.CLUES[cid].name) + "</li>"; }).join("");
+      var missing = th.supports.filter(function (cid) { return !state.placed[cid]; }).length;
+      return '<div class="res-theory-block"><b>' + esc(th.title) + "</b><ul>" + items +
+        (missing ? "<li><i>" + missing + " link" + (missing > 1 ? "s" : "") + " undiscovered</i></li>" : "") +
+        "</ul></div>";
+    }).join("");
+
+    $("#res-score").innerHTML =
+      "<li>Clues found: <b>" + clues + " \u00D7 100 = " + (clues * CLUE_PTS) + "</b></li>" +
+      "<li>Insights noted: <b>" + notes + " \u00D7 50 = " + (notes * INSIGHT_PTS) + "</b></li>" +
+      "<li>Witnesses questioned: <b>" + topics + " \u00D7 25 = " + (topics * TOPIC_PTS) + "</b></li>" +
+      "<li>Evidence matched: <b>" + matched + " \u00D7 150 = " + (matched * MATCH_PTS) + "</b></li>" +
+      (state.hints ? "<li>Hints used: <b>" + state.hints + " \u00D7 \u221250 = \u2212" + (state.hints * HINT_COST) + "</b></li>" : "") +
+      "<li>Time on the case: <b>" + fmtTime(state.elapsed) + "</b> (no bonus \u2014 thorough beats fast)</li>" +
+      "<li class='total'>Final score: <b>" + state.score + "</b></li>";
+
+    saveBest(stars, rank, allClues);
+    window.Platform.gameplayStop();
+    window.Platform.happyTime();
+    window.AudioFX.success();
+    showScreen("results");
+    updateHUD();
+  }
+
+  /* ------------------------------- pause -------------------------------- */
+  function openPause() {
+    window.AudioFX.click();
+    window.Platform.gameplayStop();
+    stopTimer();
+    $("#pause-menu").classList.add("open");
+  }
+  function closePause(resume) {
+    $("#pause-menu").classList.remove("open");
+    if (resume && !state.finished && (state.screen === "map" || state.screen === "scene")) {
+      window.Platform.gameplayStart();
+      startTimer();
+    }
+    window.AudioFX.click();
+  }
+
+  /* -------------------------------- boot -------------------------------- */
+  function init() {
+    window.Platform.loadingStart();
+
+    // Illustrated title keyart (build-time manifest); HTML logo stays overlaid.
+    if (PORTAL_ART.title) {
+      var tk = document.createElement("img");
+      tk.alt = "";
+      tk.draggable = false;
+      tk.addEventListener("error", function () { tk.remove(); });
+      tk.src = PORTAL_ART.title;
+      $("#title-keyart").appendChild(tk);
+    }
+    showBest();
+
+    $("#btn-begin").addEventListener("click", beginInvestigation);
+    $("#btn-how").addEventListener("click", function () {
+      window.AudioFX.click();
+      openModal(
+        "<h3>How to play</h3>" +
+        "<p>\uD83D\uDD0D <b>Search</b> each location \u2014 tap the glowing <b>?</b> markers to collect clues.</p>" +
+        "<p>\uD83D\uDCAC <b>Question</b> witnesses and police. Some answers only unlock once you hold the right evidence.</p>" +
+        "<p>\uD83D\uDCCB Your <b>journal</b> keeps every clue and insight.</p>" +
+        "<p>\uD83E\uDDEC At <b>6 of 8 clues</b>, the deduction board opens: <b>drag</b> each clue onto the theory it supports and close the case.</p>" +
+        "<p>There are no dead ends \u2014 you can always keep investigating.</p>" +
+        '<button class="btn primary" id="m-ok">Got it</button>'
+      );
+      $("#m-ok").addEventListener("click", function () { window.AudioFX.click(); closeModal(); });
+    });
+
+    $("#btn-intro-next").addEventListener("click", function () {
+      if (introIdx < D.INTRO.length - 1) { introIdx++; window.AudioFX.click(); renderIntro(); }
+      else { finishIntro(); }
+    });
+    $("#btn-intro-back").addEventListener("click", function () {
+      if (introIdx > 0) { introIdx--; window.AudioFX.click(); renderIntro(); }
+    });
+
+    $("#btn-map").addEventListener("click", function () {
+      window.AudioFX.click();
+      window.Platform.gameplayStart();
+      renderMap();
+      showScreen("map");
+    });
+    $("#btn-deduction").addEventListener("click", openDeduction);
+    $("#btn-close-case").addEventListener("click", function () {
+      window.AudioFX.click();
+      closeCase();
+    });
+    $("#btn-ded-map").addEventListener("click", function () {
+      window.AudioFX.click();
+      window.Platform.gameplayStart();
+      renderMap();
+      showScreen("map");
+    });
+
+    $("#btn-journal").addEventListener("click", openJournal);
+    $("#journal-close").addEventListener("click", function () { window.AudioFX.click(); closeJournal(); });
+    $("#btn-hint").addEventListener("click", onHintButton);
+    $("#btn-pause").addEventListener("click", openPause);
+    $("#btn-mute").addEventListener("click", function () {
+      window.AudioFX.unlock();
+      var m = window.AudioFX.toggleMute();
+      if (!m) { window.AudioFX.startAmbient(); window.AudioFX.setMood(currentMood); }
+      updateHUD();
+    });
+
+    $("#btn-resume").addEventListener("click", function () { closePause(true); });
+    $("#btn-restart").addEventListener("click", function () {
+      confirmModal(
+        "Restart the case from the beginning? Your progress will be lost.",
+        "Restart",
+        function () { $("#pause-menu").classList.remove("open"); location.reload(); }
+      );
+    });
+    $("#btn-pause-how").addEventListener("click", function () {
+      window.AudioFX.click();
+      $("#btn-how").click();
+    });
+    $("#btn-again").addEventListener("click", function () { location.reload(); });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") {
+        closeModal();
+        closeJournal();
+        if ($("#pause-menu").classList.contains("open")) closePause(true);
+      }
+    });
+    document.addEventListener("pointerdown", function () { window.AudioFX.unlock(); }, { once: true });
+
+    // Hint button label depends on portal: rewarded ad vs free hint.
+    if (window.Platform.isCrazyGames) {
+      $("#btn-hint").innerHTML = "\uD83D\uDCA1 Hint (\uD83D\uDCFA ad)";
+      $("#btn-hint").title = "Watch a short ad for a hint";
+    } else {
+      $("#btn-hint").innerHTML = "\uD83D\uDCA1 Hint (\u221250)";
+      $("#btn-hint").title = "Get a hint (costs 50 points)";
+    }
+
+    updateHUD();
+    showScreen("title");
+    window.Platform.loadingDone();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+
+</script>
+<style>
+#bk-legal-overlay{position:fixed;inset:0;z-index:2147483647;display:none;align-items:center;justify-content:center;background:rgba(5,7,12,.88);font-family:Georgia,'Times New Roman',serif;padding:12px;box-sizing:border-box}
+#bk-legal-card{background:#10141d;color:#e8e2d4;border:1px solid #c9a227;border-radius:10px;max-width:640px;width:100%;max-height:92vh;display:flex;flex-direction:column;box-shadow:0 12px 60px rgba(0,0,0,.7)}
+#bk-legal-head{padding:16px 20px 10px;border-bottom:1px solid #2a2f3d}
+#bk-legal-head h2{margin:0 0 6px;font-size:20px;color:#f5d576;letter-spacing:.5px}
+#bk-legal-summary{padding:10px 20px 0;font-size:14px;line-height:1.5}
+#bk-legal-summary ul{margin:8px 0;padding-left:20px}
+#bk-legal-summary li{margin-bottom:6px}
+#bk-legal-terms{margin:10px 20px;padding:12px 14px;border:1px solid #2a2f3d;border-radius:6px;background:#0a0d14;overflow-y:auto;max-height:30vh;font-size:13px;line-height:1.55;-webkit-overflow-scrolling:touch}
+#bk-legal-terms h3{color:#f5d576;font-size:15px;margin:14px 0 6px}
+#bk-legal-terms p{margin:6px 0}
+#bk-legal-terms .bk-legal-sub{color:#9aa3b5;font-style:italic}
+#bk-legal-terms .bk-legal-clause{padding-left:8px}
+#bk-legal-foot{padding:14px 20px 18px;display:flex;gap:10px;justify-content:center;border-top:1px solid #2a2f3d;margin-top:10px}
+#bk-legal-agree,#bk-legal-close{background:#c9a227;color:#14100a;border:none;border-radius:8px;padding:12px 34px;font-size:16px;font-weight:bold;cursor:pointer;font-family:inherit}
+#bk-legal-agree:active,#bk-legal-close:active{transform:scale(.97)}
+#bk-legal-link{position:fixed;right:10px;bottom:10px;z-index:2147483646;background:rgba(10,13,20,.75);color:#c9a227;border:1px solid #3a3f4d;border-radius:6px;padding:5px 10px;font-size:11px;font-family:Georgia,serif;cursor:pointer;text-decoration:none;letter-spacing:.5px}
+#bk-legal-link:hover{background:rgba(20,25,38,.9)}
+</style>
+<div id="bk-legal-overlay" role="dialog" aria-modal="true" aria-label="Terms of Use">
+<div id="bk-legal-card">
+<div id="bk-legal-head"><h2>Terms of Use &amp; Legal Disclosure</h2><div style="font-size:13px;color:#9aa3b5">Please read — your agreement is required to play.</div></div>
+<div id="bk-legal-summary"><strong>Key points:</strong><ul>
+<li><strong>Binding arbitration:</strong> disputes are resolved by individual binding arbitration (AAA Consumer Rules, Richmond County, NY) — not in court. You waive any class or collective action. You may opt out within 30 days by emailing beastkid2024@yahoo.com.</li>
+<li><strong>As-is:</strong> the game is provided "as is" with no warranties; our liability is limited as described below.</li>
+<li><strong>Virtual items</strong> (chips, points, scores) have no real-world monetary value and can't be cashed out.</li>
+<li><strong>Age:</strong> players under 13 need a parent or guardian's permission and supervision.</li>
+</ul></div>
+<div id="bk-legal-terms"><p class="bk-legal-sub">(Applies to all Beast Kid games: Case Files series, River Rats Card Club, Troy, and related builds)</p>
+<p><strong>Last updated: September 29, 2026</strong></p>
+<h3>1. Agreement to These Terms</h3>
+<p>By downloading, installing, accessing, or playing any Beast Kid game ("the Game"), you agree to be bound by these Terms of Use ("Terms"). If you do not agree, do not play the Game. We may update these Terms at any time; continued play after changes means you accept the updated Terms.</p>
+<h3>2. Eligibility</h3>
+<p>The Game is intended for a general audience. If you are under 13, you may only play with the permission and supervision of a parent or legal guardian, who agrees to these Terms on your behalf. If you are between 13 and 18 (or the age of majority in your jurisdiction), your parent or guardian must review and agree to these Terms.</p>
+<h3>3. License</h3>
+<p>We grant you a personal, non-exclusive, non-transferable, revocable license to play the Game for your own non-commercial entertainment. You may not copy, modify, distribute, reverse-engineer, or create derivative works from the Game.</p>
+<h3>4. Virtual Items Have No Monetary Value</h3>
+<p>The Game may include virtual chips, points, scores, or other virtual items. These have <strong>no real-world monetary value</strong>, cannot be purchased with real money, cannot be redeemed for cash or prizes, and cannot be transferred outside the Game. We may modify or remove virtual items at any time without liability.</p>
+<h3>5. No Real-Money Gambling</h3>
+<p>Our card and casino-style games are <strong>free social games for entertainment only</strong>. They do not offer real-money gambling, and no real money can be won or lost. Success at a social game does not imply future success at real-money gambling.</p>
+<h3>6. Intellectual Property</h3>
+<p>All content in the Game — including art, music, text, code, characters, and the "Beast Kid" name and branding — is owned by us and protected by intellectual property laws. All rights reserved.</p>
+<h3>7. Disclaimer of Warranties</h3>
+<p>THE GAME IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. We do not guarantee the Game will be uninterrupted, error-free, or secure.</p>
+<h3>8. Limitation of Liability</h3>
+<p>TO THE MAXIMUM EXTENT PERMITTED BY LAW, WE WILL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS, DATA, OR GOODWILL, ARISING FROM YOUR USE OF THE GAME — EVEN IF WE WERE ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. OUR TOTAL LIABILITY FOR ANY CLAIM WILL NOT EXCEED THE AMOUNT YOU PAID US TO PLAY THE GAME (IF THE GAME IS FREE, THIS AMOUNT IS ZERO).</p>
+<h3>9. BINDING ARBITRATION AND CLASS-ACTION WAIVER — PLEASE READ CAREFULLY</h3>
+<p><strong>You and we agree to resolve disputes through binding individual arbitration instead of in court, and you waive any right to participate in a class action.</strong></p>
+<p class="bk-legal-clause">(a) <strong>Scope.</strong> Except for small-claims court actions and claims for injunctive relief to protect intellectual property, any dispute, claim, or controversy arising out of or relating to the Game or these Terms — including their formation, interpretation, breach, or termination — will be resolved exclusively by binding arbitration on an individual basis.</p>
+<p class="bk-legal-clause">(b) <strong>Administrator and rules.</strong> The arbitration will be administered by the American Arbitration Association (&quot;AAA&quot;) under its Consumer Arbitration Rules, by a single arbitrator. The Federal Arbitration Act governs the interpretation and enforcement of this section.</p>
+<p class="bk-legal-clause">(c) <strong>Location and process.</strong> The arbitration will take place in Richmond County (Staten Island), New York, or another location we both agree on, and may be conducted by telephone or video if the arbitrator permits. Each side pays its own attorneys&#x27; fees; AAA filing and arbitrator fees will be handled under the AAA Consumer Rules&#x27; cost provisions.</p>
+<p class="bk-legal-clause">(d) <strong>Class-action waiver.</strong> YOU AND WE EACH AGREE THAT DISPUTES WILL BE RESOLVED ONLY ON AN INDIVIDUAL BASIS — NOT AS A CLASS, COLLECTIVE, OR REPRESENTATIVE ACTION. The arbitrator may not consolidate claims or preside over any form of representative proceeding.</p>
+<p class="bk-legal-clause">(e) <strong>Small-claims exception.</strong> Either party may bring an individual claim in small-claims court instead of arbitration, as long as the claim stays in that court.</p>
+<p class="bk-legal-clause">(f) <strong>Opt-out.</strong> You may opt out of this arbitration agreement within 30 days of first playing the Game by sending an email to beastkid2024@yahoo.com with the subject line &quot;Arbitration Opt-Out&quot; and your name. Opting out does not affect any other part of these Terms.</p>
+<p class="bk-legal-clause">(g) <strong>Severability.</strong> If the class-action waiver is found unenforceable, this entire arbitration section is void and disputes will proceed in court, subject to Section 10.</p>
+<h3>10. Governing Law and Venue</h3>
+<p>These Terms are governed by the laws of the State of New York, without regard to conflict-of-law principles. Subject to Section 9, any court action must be brought in the state or federal courts located in Richmond County, New York, and you consent to their exclusive jurisdiction.</p>
+<h3>11. Changes to the Game or Terms</h3>
+<p>We may modify, suspend, or discontinue the Game (or any part of it) at any time without notice or liability. We may update these Terms by posting a new version with the Game; your continued play constitutes acceptance.</p>
+<h3>12. Contact</h3>
+<p>Questions about these Terms: beastkid2024@yahoo.com</p>
+<p class="bk-legal-sub">This is a summary-form consumer agreement, not legal advice. Have an attorney review before relying on it in a dispute.</p></div>
+<div id="bk-legal-foot">
+<button id="bk-legal-agree" type="button">I Agree</button>
+<button id="bk-legal-close" type="button" style="display:none">Close</button>
+</div></div></div>
+<a id="bk-legal-link" href="#">Legal</a>
+<script>
+(function(){
+var FLAG='bk_legal_agreed_v1';
+function agreed(){try{return window.localStorage.getItem(FLAG);}catch(e){return null;}}
+function $(id){return document.getElementById(id);}
+function openLegal(asGate){
+var m=$('bk-legal-overlay');if(!m)return;
+m.style.display='flex';
+$('bk-legal-agree').style.display=asGate?'inline-block':'none';
+$('bk-legal-close').style.display=asGate?'none':'inline-block';
+}
+function closeLegal(){var m=$('bk-legal-overlay');if(m)m.style.display='none';}
+function init(){
+if(!$('bk-legal-overlay'))return;
+$('bk-legal-agree').addEventListener('click',function(){try{window.localStorage.setItem(FLAG,JSON.stringify({t:Date.now()}));}catch(e){}closeLegal();});
+$('bk-legal-close').addEventListener('click',closeLegal);
+$('bk-legal-link').addEventListener('click',function(e){if(e&&e.preventDefault)e.preventDefault();openLegal(false);});
+if(!agreed())openLegal(true);
+}
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}else{init();}
+})();
+</script>
+</body>
+</html>
